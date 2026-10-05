@@ -96,67 +96,78 @@ async function initDb() {
       );
     `);
 
-    // Xóa sạch dữ liệu cũ để nạp lại dữ liệu tiếng Việt (tùy chọn, ở đây mình check count)
     const { rows: empRows } = await client.query('SELECT COUNT(*) FROM employees');
-    if (parseInt(empRows[0].count) < 10) {
-      console.log('Seeding Vietnamese mock data...');
+    if (parseInt(empRows[0].count) < 50) {
+      console.log('Seeding 50 Employees and 30 Inventory items...');
       
-      // Xóa để seed lại cho sạch nếu ít hơn 10
       await client.query('TRUNCATE employees, shifts, leave_requests, checklists, inventory, transactions, daily_orders RESTART IDENTITY CASCADE');
 
-      // Employees (12 Nhân viên)
-      const mockEmps = [
-        ['Nguyễn Văn An', 'Chi nhánh Hoàng Hoa Thám', 'Sáng (06h - 14h)', '0901234567', 'Cửa hàng trưởng', '1995-05-15', 'Đang làm việc'],
-        ['Trần Thị Bình', 'Chi nhánh Hoàng Hoa Thám', 'Chiều (14h - 22h)', '0902234567', 'Phục vụ', '1998-08-20', 'Đang làm việc'],
-        ['Lê Hoàng Cường', 'Chi nhánh Hoàng Hoa Thám', 'Sáng (06h - 14h)', '0903234567', 'Pha chế', '1999-11-03', 'Đang làm việc'],
-        ['Phạm Thu Dung', 'Chi nhánh Nguyễn Sơn Hà', 'Full ca (08h - 20h)', '0904234567', 'Quản lý', '1992-02-14', 'Đang làm việc'],
-        ['Hoàng Khắc Ân', 'Chi nhánh Nguyễn Sơn Hà', 'Chiều (14h - 22h)', '0905234567', 'Phục vụ', '2001-07-22', 'Đang làm việc'],
-        ['Đinh Văn Phong', 'Chi nhánh Nguyễn Sơn Hà', 'Sáng (06h - 14h)', '0906234567', 'Pha chế', '2000-09-10', 'Đang làm việc'],
-        ['Ngô Thị Yến', 'Chi nhánh Kỳ Đồng', 'Sáng (06h - 14h)', '0907234567', 'Cửa hàng phó', '1996-12-05', 'Đang làm việc'],
-        ['Bùi Anh Tuấn', 'Chi nhánh Kỳ Đồng', 'Chiều (14h - 22h)', '0908234567', 'Pha chế', '1997-04-18', 'Đang làm việc'],
-        ['Vũ Ngọc Hoa', 'Xưởng', 'Hành chính (08h - 17h)', '0909234567', 'Thợ làm bánh', '1990-01-25', 'Đang làm việc'],
-        ['Đặng Minh Trí', 'Xưởng', 'Hành chính (08h - 17h)', '0910234567', 'Thợ chính', '1988-10-12', 'Đang làm việc'],
-        ['Lý Quốc Bảo', 'Chi nhánh Đường số 65', 'Full ca (08h - 20h)', '0911234567', 'Quản lý', '1994-06-30', 'Đang làm việc'],
-        ['Mai Thúy Hạnh', 'Chi nhánh Đường số 65', 'Chiều (14h - 22h)', '0912234567', 'Phục vụ', '2002-03-08', 'Đang làm việc']
-      ];
+      // Employees (50 Nhân viên)
+      const ho = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Đinh', 'Ngô', 'Bùi', 'Vũ', 'Đặng', 'Lý', 'Mai'];
+      const dem = ['Văn', 'Thị', 'Hoàng', 'Thu', 'Khắc', 'Ngọc', 'Minh', 'Quốc', 'Anh', 'Thúy', 'Đức', 'Phương'];
+      const ten = ['An', 'Bình', 'Cường', 'Dung', 'Ân', 'Phong', 'Yến', 'Tuấn', 'Hoa', 'Trí', 'Bảo', 'Hạnh', 'Linh', 'Quân', 'Nga', 'Đạt'];
+      const branches = ['Chi nhánh Quận 1 - Lê Lợi', 'Chi nhánh Gò Vấp - Quang Trung', 'Chi nhánh Quận 7 - Nguyễn Văn Linh', 'Kiosk Sinh Viên - Thủ Đức', 'Kho Tổng Hợp StoreMate'];
+      const shifts = ['Sáng (06h - 14h)', 'Chiều (14h - 22h)', 'Full ca (08h - 20h)', 'Hành chính (08h - 17h)'];
+      const positions = ['Cửa hàng trưởng', 'Phục vụ', 'Pha chế', 'Quản lý', 'Cửa hàng phó', 'Thợ làm bánh', 'Thủ kho'];
+      
+      const mockEmps = [];
+      for(let i=0; i<50; i++) {
+        let name = ho[i%ho.length] + ' ' + dem[i%dem.length] + ' ' + ten[i%ten.length];
+        let branch = branches[i%branches.length];
+        let shift = shifts[i%shifts.length];
+        let phone = '090' + Math.floor(1000000 + Math.random() * 9000000);
+        let pos = positions[i%positions.length];
+        let year = 1985 + (i % 15);
+        let month = (i % 12) + 1;
+        let day = (i % 28) + 1;
+        let bday = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        mockEmps.push([name, branch, shift, phone, pos, bday, 'Đang làm việc']);
+      }
+
       for (const emp of mockEmps) {
         await client.query('INSERT INTO employees (name, branch, shift, phone, position, birthday, status) VALUES ($1, $2, $3, $4, $5, $6, $7)', emp);
       }
 
-      // Inventory (15 món)
-      const mockInventory = [
-        ['Cà phê Robusta (Hạt)', 'Nguyên liệu', 50, 'kg', 'Chi nhánh Hoàng Hoa Thám'],
-        ['Cà phê Arabica (Hạt)', 'Nguyên liệu', 20, 'kg', 'Chi nhánh Hoàng Hoa Thám'],
-        ['Sữa tươi thanh trùng', 'Thức uống', 35, 'hộp', 'Chi nhánh Hoàng Hoa Thám'],
-        ['Đường cát trắng', 'Gia vị', 15, 'kg', 'Chi nhánh Hoàng Hoa Thám'],
-        ['Ly nhựa chữ U 500ml', 'Bao bì', 1000, 'cái', 'Chi nhánh Hoàng Hoa Thám'],
-        
-        ['Trà Ô Long', 'Nguyên liệu', 10, 'kg', 'Chi nhánh Nguyễn Sơn Hà'],
-        ['Sữa đặc Ngôi Sao', 'Thức uống', 50, 'lon', 'Chi nhánh Nguyễn Sơn Hà'],
-        ['Syrup Vanilla', 'Nguyên liệu', 5, 'chai', 'Chi nhánh Nguyễn Sơn Hà'],
-        ['Ống hút giấy', 'Bao bì', 2000, 'cái', 'Chi nhánh Nguyễn Sơn Hà'],
-        
-        ['Bột matcha Nhật', 'Nguyên liệu', 3, 'kg', 'Chi nhánh Kỳ Đồng'],
-        ['Bánh Croissant đông lạnh', 'Thực phẩm', 40, 'cái', 'Chi nhánh Kỳ Đồng'],
-        ['Giấy ăn', 'Vật tư', 50, 'bịch', 'Chi nhánh Kỳ Đồng'],
-
-        ['Bột mì đa dụng', 'Nguyên liệu', 100, 'kg', 'Xưởng'],
-        ['Bơ lạt Anchor', 'Nguyên liệu', 20, 'kg', 'Xưởng'],
-        ['Men nở', 'Nguyên liệu', 2, 'kg', 'Xưởng']
+      // Inventory (30 món)
+      const items = [
+        ['Cà phê Robusta (Hạt)', 'Nguyên liệu', 'kg'], ['Cà phê Arabica (Hạt)', 'Nguyên liệu', 'kg'],
+        ['Sữa tươi thanh trùng', 'Thức uống', 'hộp'], ['Đường cát trắng', 'Gia vị', 'kg'],
+        ['Ly nhựa chữ U 500ml', 'Bao bì', 'cái'], ['Trà Ô Long', 'Nguyên liệu', 'kg'],
+        ['Sữa đặc Ngôi Sao', 'Thức uống', 'lon'], ['Syrup Vanilla', 'Nguyên liệu', 'chai'],
+        ['Ống hút giấy', 'Bao bì', 'cái'], ['Bột matcha Nhật', 'Nguyên liệu', 'kg'],
+        ['Bánh Croissant', 'Thực phẩm', 'cái'], ['Giấy ăn', 'Vật tư', 'bịch'],
+        ['Bột mì đa dụng', 'Nguyên liệu', 'kg'], ['Bơ lạt Anchor', 'Nguyên liệu', 'kg'],
+        ['Men nở', 'Nguyên liệu', 'kg'], ['Syrup Caramel', 'Nguyên liệu', 'chai'],
+        ['Sốt Socola', 'Nguyên liệu', 'chai'], ['Cốc giấy 350ml', 'Bao bì', 'cái'],
+        ['Trà đen Lipton', 'Nguyên liệu', 'hộp'], ['Sữa chua có đường', 'Thực phẩm', 'hộp'],
+        ['Bột cacao', 'Nguyên liệu', 'kg'], ['Đá viên', 'Vật tư', 'bao'],
+        ['Nước lọc Aquafina', 'Thức uống', 'chai'], ['Trà đào túi lọc', 'Nguyên liệu', 'hộp'],
+        ['Kem béo béo Rich', 'Nguyên liệu', 'hộp'], ['Ly thủy tinh', 'Vật tư', 'cái'],
+        ['Khăn lạnh', 'Vật tư', 'cái'], ['Đường phèn', 'Gia vị', 'kg'],
+        ['Mứt dâu tây', 'Nguyên liệu', 'hộp'], ['Hạt điều rang', 'Thực phẩm', 'hộp']
       ];
+      
+      const mockInventory = [];
+      for(let i=0; i<30; i++) {
+        let item = items[i % items.length];
+        let branch = branches[i % branches.length];
+        let qty = Math.floor(Math.random() * 100) + 5;
+        mockInventory.push([item[0], item[1], qty, item[2], branch]);
+      }
+
       for (const inv of mockInventory) {
         await client.query('INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ($1, $2, $3, $4, $5)', inv);
       }
       
       // Checklists
       const mockChecklists = [
-        ['Chi nhánh Hoàng Hoa Thám', 'Vệ sinh máy pha cà phê cuối ngày', false],
-        ['Chi nhánh Hoàng Hoa Thám', 'Kiểm đếm tiền mặt ca sáng', true],
-        ['Chi nhánh Hoàng Hoa Thám', 'Lau dọn khu vực khách ngồi', true],
-        ['Chi nhánh Nguyễn Sơn Hà', 'Nhập sữa tươi từ nhà cung cấp', false],
-        ['Chi nhánh Nguyễn Sơn Hà', 'Đổ rác cuối ngày', false],
-        ['Chi nhánh Kỳ Đồng', 'Kiểm kê kho hàng', false],
-        ['Xưởng', 'Vệ sinh lò nướng', true]
+        ['Chi nhánh Quận 1 - Lê Lợi', 'Vệ sinh máy pha cà phê cuối ngày', false],
+        ['Chi nhánh Quận 1 - Lê Lợi', 'Kiểm đếm tiền mặt ca sáng', true],
+        ['Chi nhánh Quận 1 - Lê Lợi', 'Lau dọn khu vực khách ngồi', true],
+        ['Chi nhánh Gò Vấp - Quang Trung', 'Nhập sữa tươi từ nhà cung cấp', false],
+        ['Chi nhánh Gò Vấp - Quang Trung', 'Đổ rác cuối ngày', false],
+        ['Chi nhánh Quận 7 - Nguyễn Văn Linh', 'Kiểm kê kho hàng', false],
+        ['Kho Tổng Hợp StoreMate', 'Kiểm kê và xuất hàng tuần', true]
       ];
       for (const chk of mockChecklists) {
         await client.query('INSERT INTO checklists (branch, task_name, is_completed) VALUES ($1, $2, $3)', chk);
