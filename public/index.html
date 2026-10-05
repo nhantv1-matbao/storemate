@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban Brew - Operations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .tab-btn.active { color: #059669; border-bottom: 2px solid #059669; font-weight: bold; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-white shadow-sm sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <img src="/logo.jpg" alt="Urban Brew Logo" class="h-10 w-10 rounded-full object-cover shadow-sm">
+      <h1 class="text-xl font-bold text-slate-800 tracking-tight">Urban Brew Operations</h1>
+    </div>
+    <div class="flex gap-4">
+      <button onclick="switchTab('hr')" id="tab-hr" class="tab-btn active pb-1 text-slate-500 hover:text-emerald-600 transition">HR Management</button>
+      <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn pb-1 text-slate-500 hover:text-emerald-600 transition">Inventory</button>
+      <button onclick="switchTab('store')" id="tab-store" class="tab-btn pb-1 text-slate-500 hover:text-emerald-600 transition">Store Tasks</button>
+      <button onclick="switchTab('finance')" id="tab-finance" class="tab-btn pb-1 text-slate-500 hover:text-emerald-600 transition">Finance & Sales</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+
+    <!-- HR Management Tab -->
+    <div id="view-hr" class="space-y-4">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-700"><i class="fa-solid fa-users text-emerald-500 mr-2"></i> Employee Roster</h2>
+        <button onclick="document.getElementById('addEmpModal').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">+ Add Employee</button>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm text-left text-slate-600">
+          <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="px-6 py-3">ID</th><th class="px-6 py-3">Name</th><th class="px-6 py-3">Branch</th>
+              <th class="px-6 py-3">Position</th><th class="px-6 py-3">Shift</th><th class="px-6 py-3 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="empTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Inventory Tab -->
+    <div id="view-inventory" class="space-y-4 hidden">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-700"><i class="fa-solid fa-boxes-stacked text-emerald-500 mr-2"></i> Inventory Tracking</h2>
+        <button onclick="document.getElementById('addInvModal').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">+ Add Item</button>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm text-left text-slate-600">
+          <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="px-6 py-3">Item Name</th><th class="px-6 py-3">Category</th><th class="px-6 py-3">Branch</th>
+              <th class="px-6 py-3">Quantity</th><th class="px-6 py-3">Unit</th><th class="px-6 py-3 text-center">Update</th>
+            </tr>
+          </thead>
+          <tbody id="invTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Store Tasks Tab -->
+    <div id="view-store" class="space-y-4 hidden">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-700"><i class="fa-solid fa-clipboard-list text-emerald-500 mr-2"></i> Daily Checklists</h2>
+        <div class="flex gap-2">
+          <input type="text" id="newTaskName" placeholder="New task..." class="border rounded-lg px-3 py-2 text-sm outline-none w-64">
+          <select id="newTaskBranch" class="border rounded-lg px-3 py-2 text-sm outline-none">
+            <option>Downtown Branch</option><option>Uptown Branch</option><option>Mall Kiosk</option>
+          </select>
+          <button onclick="addTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Add</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="taskContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Finance & Sales Tab -->
+    <div id="view-finance" class="space-y-4 hidden">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-700"><i class="fa-solid fa-chart-line text-emerald-500 mr-2"></i> Daily Finances & Sales</h2>
+        <button onclick="document.getElementById('addFinanceModal').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">+ Log Sales/Expenses</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" id="financeSummary">
+        <!-- Rendered via JS -->
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm text-left text-slate-600">
+          <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="px-6 py-3">Date</th><th class="px-6 py-3">Branch</th><th class="px-6 py-3">Revenue</th>
+              <th class="px-6 py-3">Expenses</th><th class="px-6 py-3">Profit</th><th class="px-6 py-3">Orders (Sold)</th><th class="px-6 py-3">Orders (Cancelled)</th>
+            </tr>
+          </thead>
+          <tbody id="financeTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modals -->
+  <!-- Add Employee Modal -->
+  <div id="addEmpModal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex justify-center items-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-[400px]">
+      <h3 class="text-lg font-bold mb-4">Add Employee</h3>
+      <div class="space-y-3">
+        <input type="text" id="empName" placeholder="Full Name" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        <select id="empBranch" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <option>Downtown Branch</option><option>Uptown Branch</option><option>Mall Kiosk</option>
+        </select>
+        <input type="text" id="empPosition" placeholder="Position (e.g. Barista)" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        <select id="empShift" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <option>Morning Shift</option><option>Evening Shift</option><option>Full Day</option>
+        </select>
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button onclick="document.getElementById('addEmpModal').classList.add('hidden')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300">Cancel</button>
+        <button onclick="saveEmployee()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Inventory Modal -->
+  <div id="addInvModal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex justify-center items-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-[400px]">
+      <h3 class="text-lg font-bold mb-4">Add Inventory Item</h3>
+      <div class="space-y-3">
+        <input type="text" id="invName" placeholder="Item Name" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        <input type="text" id="invCategory" placeholder="Category (e.g. Raw Materials)" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        <select id="invBranch" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <option>Downtown Branch</option><option>Uptown Branch</option><option>Mall Kiosk</option>
+        </select>
+        <div class="flex gap-2">
+          <input type="number" id="invQty" placeholder="Qty" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <input type="text" id="invUnit" placeholder="Unit (e.g. kg)" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button onclick="document.getElementById('addInvModal').classList.add('hidden')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300">Cancel</button>
+        <button onclick="saveInventory()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Finance Modal -->
+  <div id="addFinanceModal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex justify-center items-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-[400px]">
+      <h3 class="text-lg font-bold mb-4">Log Daily Finances</h3>
+      <div class="space-y-3">
+        <select id="finBranch" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <option>Downtown Branch</option><option>Uptown Branch</option><option>Mall Kiosk</option>
+        </select>
+        <div class="flex gap-2">
+          <input type="number" id="finRevenue" placeholder="Revenue ($)" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <input type="number" id="finExpenses" placeholder="Expenses ($)" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        </div>
+        <div class="flex gap-2">
+          <input type="number" id="finSold" placeholder="Total Sold Orders" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+          <input type="number" id="finCancelled" placeholder="Cancelled Orders" class="w-full border rounded-lg px-3 py-2 outline-none text-sm">
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button onclick="document.getElementById('addFinanceModal').classList.add('hidden')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300">Cancel</button>
+        <button onclick="saveFinance()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700">Log Data</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api';
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('view-hr').classList.add('hidden');
+      document.getElementById('view-inventory').classList.add('hidden');
+      document.getElementById('view-store').classList.add('hidden');
+      document.getElementById('view-' + tab).classList.remove('hidden');
+
+      if (tab === 'hr') loadEmployees();
+      if (tab === 'inventory') loadInventory();
+      if (tab === 'store') loadChecklists();
+      if (tab === 'finance') loadFinances();
+    }
+
+    // --- Finances & Sales ---
+    async function loadFinances() {
+      const res = await fetch(`${API_BASE}/finances`);
+      const data = await res.json();
+      const tbody = document.getElementById('financeTableBody');
+      tbody.innerHTML = '';
+      
+      let totalRev = 0, totalExp = 0, totalSold = 0, totalCanc = 0;
+      data.forEach(item => {
+        const profit = item.revenue - item.expenses;
+        totalRev += parseFloat(item.revenue);
+        totalExp += parseFloat(item.expenses);
+        totalSold += item.total_orders;
+        totalCanc += item.cancelled_orders;
+        
+        tbody.innerHTML += `
+          <tr class="bg-white border-b hover:bg-slate-50 transition">
+            <td class="px-6 py-4 font-medium text-slate-900">${new Date(item.date).toLocaleDateString()}</td>
+            <td class="px-6 py-4 font-bold text-slate-700">${item.branch}</td>
+            <td class="px-6 py-4 text-emerald-600 font-bold">$${item.revenue}</td>
+            <td class="px-6 py-4 text-rose-500 font-bold">$${item.expenses}</td>
+            <td class="px-6 py-4 font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-rose-500'}">$${profit.toFixed(2)}</td>
+            <td class="px-6 py-4">${item.total_orders}</td>
+            <td class="px-6 py-4">${item.cancelled_orders}</td>
+          </tr>
+        `;
+      });
+      
+      document.getElementById('financeSummary').innerHTML = `
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Revenue</p>
+          <p class="text-2xl font-bold text-emerald-600">$${totalRev.toFixed(2)}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Expenses</p>
+          <p class="text-2xl font-bold text-rose-500">$${totalExp.toFixed(2)}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Orders</p>
+          <p class="text-2xl font-bold text-slate-800">${totalSold}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cancelled</p>
+          <p class="text-2xl font-bold text-rose-500">${totalCanc}</p>
+        </div>
+      `;
+    }
+
+    async function saveFinance() {
+      const payload = {
+        branch: document.getElementById('finBranch').value,
+        revenue: parseFloat(document.getElementById('finRevenue').value || 0),
+        expenses: parseFloat(document.getElementById('finExpenses').value || 0),
+        total_orders: parseInt(document.getElementById('finSold').value || 0),
+        cancelled_orders: parseInt(document.getElementById('finCancelled').value || 0)
+      };
+      
+      await fetch(`${API_BASE}/finances`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      document.getElementById('addFinanceModal').classList.add('hidden');
+      loadFinances();
+    }
+
+    // --- HR ---
+    async function loadEmployees() {
+      const res = await fetch(`${API_BASE}/employees`);
+      const data = await res.json();
+      const tbody = document.getElementById('empTableBody');
+      tbody.innerHTML = '';
+      data.forEach(e => {
+        tbody.innerHTML += `
+          <tr class="bg-white border-b hover:bg-slate-50 transition">
+            <td class="px-6 py-4 font-medium text-slate-900">#${e.id}</td>
+            <td class="px-6 py-4 font-bold">${e.name}</td>
+            <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-semibold">${e.branch}</span></td>
+            <td class="px-6 py-4">${e.position}</td>
+            <td class="px-6 py-4">${e.shift}</td>
+            <td class="px-6 py-4 text-center">
+              <button onclick="deleteEmployee(${e.id})" class="text-rose-500 hover:text-rose-700 font-semibold"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function saveEmployee() {
+      const name = document.getElementById('empName').value;
+      const branch = document.getElementById('empBranch').value;
+      const position = document.getElementById('empPosition').value;
+      const shift = document.getElementById('empShift').value;
+      if (!name) return alert('Name is required');
+
+      await fetch(`${API_BASE}/employees`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, branch, position, shift })
+      });
+      document.getElementById('addEmpModal').classList.add('hidden');
+      loadEmployees();
+    }
+
+    async function deleteEmployee(id) {
+      if(!confirm('Delete this employee?')) return;
+      await fetch(`${API_BASE}/employees/${id}`, { method: 'DELETE' });
+      loadEmployees();
+    }
+
+    // --- Inventory ---
+    async function loadInventory() {
+      const res = await fetch(`${API_BASE}/inventory`);
+      const data = await res.json();
+      const tbody = document.getElementById('invTableBody');
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        tbody.innerHTML += `
+          <tr class="bg-white border-b hover:bg-slate-50 transition">
+            <td class="px-6 py-4 font-bold">${item.item_name}</td>
+            <td class="px-6 py-4 text-slate-500">${item.category}</td>
+            <td class="px-6 py-4"><span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-semibold">${item.branch}</span></td>
+            <td class="px-6 py-4 font-bold text-lg">${item.quantity}</td>
+            <td class="px-6 py-4">${item.unit}</td>
+            <td class="px-6 py-4 text-center flex gap-2 justify-center">
+              <button onclick="updateQty(${item.id}, ${item.quantity - 1})" class="bg-slate-200 hover:bg-slate-300 w-8 h-8 rounded-full font-bold">-</button>
+              <button onclick="updateQty(${item.id}, ${item.quantity + 1})" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 w-8 h-8 rounded-full font-bold">+</button>
+              <button onclick="deleteInventory(${item.id})" class="ml-2 text-rose-500 hover:text-rose-700 font-semibold"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function saveInventory() {
+      const payload = {
+        item_name: document.getElementById('invName').value,
+        category: document.getElementById('invCategory').value,
+        branch: document.getElementById('invBranch').value,
+        quantity: parseInt(document.getElementById('invQty').value || 0),
+        unit: document.getElementById('invUnit').value
+      };
+      await fetch(`${API_BASE}/inventory`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('addInvModal').classList.add('hidden');
+      loadInventory();
+    }
+
+    async function updateQty(id, newQty) {
+      if(newQty < 0) return;
+      await fetch(`${API_BASE}/inventory/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: newQty })
+      });
+      loadInventory();
+    }
+    
+    async function deleteInventory(id) {
+      if(!confirm('Delete this item?')) return;
+      await fetch(`${API_BASE}/inventory/${id}`, { method: 'DELETE' });
+      loadInventory();
+    }
+
+    // --- Store Tasks (Checklists) ---
+    async function loadChecklists() {
+      const res = await fetch(`${API_BASE}/checklists`);
+      const data = await res.json();
+      const container = document.getElementById('taskContainer');
+      container.innerHTML = '';
+      
+      const groups = {};
+      data.forEach(t => {
+        if(!groups[t.branch]) groups[t.branch] = [];
+        groups[t.branch].push(t);
+      });
+
+      for (const [branch, tasks] of Object.entries(groups)) {
+        let html = `<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <h3 class="font-bold text-slate-800 border-b pb-2 mb-3">${branch}</h3>
+          <div class="space-y-2">`;
+        
+        tasks.forEach(t => {
+          const checked = t.is_completed ? 'checked' : '';
+          const lineThrough = t.is_completed ? 'line-through text-slate-400' : 'text-slate-700 font-medium';
+          html += `
+            <div class="flex items-center gap-3 hover:bg-slate-50 p-1.5 rounded transition">
+              <input type="checkbox" ${checked} onchange="toggleTask(${t.id}, this.checked)" class="w-4 h-4 accent-emerald-600 cursor-pointer">
+              <span class="${lineThrough} flex-1 text-sm">${t.task_name}</span>
+              <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+        container.innerHTML += html;
+      }
+    }
+
+    async function addTask() {
+      const name = document.getElementById('newTaskName').value;
+      const branch = document.getElementById('newTaskBranch').value;
+      if (!name) return;
+      await fetch(`${API_BASE}/checklists`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ branch, task_name: name })
+      });
+      document.getElementById('newTaskName').value = '';
+      loadChecklists();
+    }
+
+    async function toggleTask(id, is_completed) {
+      await fetch(`${API_BASE}/checklists/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_completed })
+      });
+      loadChecklists();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API_BASE}/checklists/${id}`, { method: 'DELETE' });
+      loadChecklists();
+    }
+
+    // Init
+    loadEmployees();
+
+  </script>
+</body>
+</html>
