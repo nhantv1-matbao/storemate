@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Mate - Đăng Ký Hồ Sơ Nhân Sự</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(rgba(241, 245, 249, 0.8), rgba(241, 245, 249, 0.9)), url('/bg.jpg') center/cover no-repeat fixed;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 border-t-4 border-emerald-600">
+    <div class="text-center mb-6">
+      <img src="/logo.jpg" alt="Store Mate Logo" class="h-16 w-16 rounded-full object-cover shadow-sm mx-auto mb-3">
+      <h2 class="text-2xl font-bold text-slate-800">Chào mừng đến Store Mate</h2>
+      <p class="text-slate-500 text-sm mt-1">Vui lòng điền thông tin hồ sơ nhân sự của bạn</p>
+    </div>
+    
+    <form id="onboardForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Họ và Tên *</label>
+        <input type="text" id="name" required class="w-full px-4 py-2 rounded border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Số điện thoại</label>
+        <input type="tel" id="phone" class="w-full px-4 py-2 rounded border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Ngày sinh</label>
+        <input type="date" id="birthday" class="w-full px-4 py-2 rounded border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Chi nhánh làm việc</label>
+        <select id="branch" class="w-full px-4 py-2 rounded border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <option>Chi nhánh Hoàng Hoa Thám</option>
+          <option>Chi nhánh Nguyễn Sơn Hà</option>
+          <option>Chi nhánh Kỳ Đồng</option>
+          <option>Chi nhánh Đường số 65</option>
+          <option>Xưởng</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Vị trí ứng tuyển</label>
+        <input type="text" id="position" placeholder="VD: Phục vụ, Pha chế, Thợ bánh..." class="w-full px-4 py-2 rounded border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none">
+      </div>
+      <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded mt-4 transition">Nộp Hồ Sơ</button>
+    </form>
+    
+    <div id="successMsg" class="hidden text-center py-8">
+      <div class="text-emerald-500 text-5xl mb-4">✓</div>
+      <h3 class="text-xl font-bold text-slate-800">Thành công!</h3>
+      <p class="text-slate-500 mt-2">Hồ sơ của bạn đã được gửi tới Quản lý.</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('onboardForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        birthday: document.getElementById('birthday').value,
+        branch: document.getElementById('branch').value,
+        position: document.getElementById('position').value,
+        shift: 'Chưa phân ca'
+      };
+      
+      const res = await fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if(res.ok) {
+        document.getElementById('onboardForm').classList.add('hidden');
+        document.getElementById('successMsg').classList.remove('hidden');
+      } else {
+        alert('Có lỗi xảy ra khi nộp hồ sơ.');
+      }
+    });
+  </script>
+</body>
+</html>
