@@ -14,6 +14,21 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// Chạy tự động initDb mỗi khi server khởi động
+require('./initDb.js');
+
+// --- System API ---
+app.get('/api/force-init-db', async (req, res) => {
+  try {
+    // Gọi lại logic trong initDb.js (xoá cache module để chạy lại nếu cần)
+    delete require.cache[require.resolve('./initDb.js')];
+    require('./initDb.js');
+    res.json({ success: true, message: 'Đã ra lệnh nạp dữ liệu mồi thành công!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- HR: Employees API ---
 app.get('/api/employees', async (req, res) => {
   try {

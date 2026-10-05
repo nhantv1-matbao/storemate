@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Mate - Quản lý Cửa Hàng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: linear-gradient(rgba(241, 245, 249, 0.6), rgba(241, 245, 249, 0.8)), url('/bg.jpg') center/cover no-repeat fixed;
+    }
+    .tab-btn.active { color: #059669; border-bottom: 3px solid #059669; font-weight: bold; }
+    .hidden { display: none !important; }
+    
+    /* Style bảng theo chuẩn HyKy cũ */
+    .hyky-table { border-collapse: collapse; width: 100%; white-space: nowrap; }
+    .hyky-table th, .hyky-table td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; font-size: 13px; }
+    .hyky-table th { background: #1e293b; color: #fff; padding: 10px 12px; }
+    .hyky-table tr:hover td { background: #f8fafc; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: bold; }
+  </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-white/95 backdrop-blur-md shadow-md sticky top-0 z-20 px-6 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <img src="/logo.jpg" alt="Store Mate Logo" class="h-14 w-14 rounded-full object-cover shadow border-2 border-emerald-500">
+      <div>
+        <h1 class="text-2xl font-black text-slate-800 tracking-tight">STORE MATE</h1>
+        <p class="text-xs text-emerald-600 font-bold tracking-widest uppercase">Smart Operations</p>
+      </div>
+    </div>
+    <div class="flex gap-4 mt-2">
+      <button onclick="switchTab('hr')" id="tab-hr" class="tab-btn active pb-2 text-slate-600 hover:text-emerald-600 transition uppercase text-sm font-bold tracking-wide">Nhân Sự</button>
+      <button onclick="switchTab('leave')" id="tab-leave" class="tab-btn pb-2 text-slate-600 hover:text-emerald-600 transition uppercase text-sm font-bold tracking-wide">Lịch & Phép</button>
+      <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn pb-2 text-slate-600 hover:text-emerald-600 transition uppercase text-sm font-bold tracking-wide">Kho Hàng</button>
+      <button onclick="switchTab('store')" id="tab-store" class="tab-btn pb-2 text-slate-600 hover:text-emerald-600 transition uppercase text-sm font-bold tracking-wide">Checklist</button>
+      <button onclick="switchTab('finance')" id="tab-finance" class="tab-btn pb-2 text-slate-600 hover:text-emerald-600 transition uppercase text-sm font-bold tracking-wide">Tài Chính</button>
+    </div>
+  </header>
+
+  <!-- Thanh công cụ thông minh (Links chia sẻ) -->
+  <div class="bg-emerald-800 text-white px-6 py-2 flex justify-between items-center shadow-inner">
+    <span class="text-sm font-medium"><i class="fa-solid fa-link mr-2"></i> Chia sẻ liên kết cho Nhân viên (Không cần đăng nhập):</span>
+    <div class="flex gap-3">
+      <button onclick="copyLink('/onboard')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold border border-emerald-500 transition"><i class="fa-solid fa-copy mr-1"></i> Link Tuyển Dụng</button>
+      <button onclick="copyLink('/leave-request')" class="bg-amber-500 hover:bg-amber-400 px-3 py-1 rounded text-xs font-bold border border-amber-400 transition"><i class="fa-solid fa-copy mr-1"></i> Link Xin Nghỉ Phép</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+
+    <!-- 1. HR Management Tab -->
+    <div id="view-hr" class="space-y-4">
+      <div class="bg-white/90 backdrop-blur p-5 rounded-xl shadow-lg border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-users text-emerald-600 mr-2"></i> Danh Sách Nhân Sự</h2>
+        <div class="flex gap-3">
+          <button onclick="forceInitDb()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded shadow text-sm transition"><i class="fa-solid fa-database mr-1"></i> TẠO 50 DỮ LIỆU MẪU</button>
+          <button onclick="loadEmployees()" class="text-slate-500 hover:text-emerald-600 bg-slate-100 px-3 py-1.5 rounded text-sm font-bold"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-lg border border-slate-100 overflow-x-auto">
+        <table class="hyky-table">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Họ và Tên</th>
+              <th>Chi Nhánh</th>
+              <th>Vị Trí</th>
+              <th>Số Điện Thoại</th>
+              <th>Ca Mặc Định</th>
+              <th>Trạng Thái</th>
+              <th class="text-center">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="empTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. Leave & Shifts Tab -->
+    <div id="view-leave" class="space-y-4 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Leave Requests -->
+        <div class="bg-white/90 backdrop-blur rounded-xl shadow-lg border border-slate-100 flex flex-col h-[600px]">
+          <div class="p-5 border-b bg-amber-50 rounded-t-xl flex justify-between items-center">
+            <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-envelope-open-text text-amber-500 mr-2"></i> Đơn Xin Nghỉ Phép</h2>
+          </div>
+          <div class="p-4 flex-1 overflow-y-auto space-y-3" id="leaveContainer"></div>
+        </div>
+
+        <!-- Shift Schedule -->
+        <div class="bg-white/90 backdrop-blur rounded-xl shadow-lg border border-slate-100 flex flex-col h-[600px]">
+          <div class="p-5 border-b bg-blue-50 rounded-t-xl flex justify-between items-center">
+            <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i> Xếp Ca Làm Việc</h2>
+            <button onclick="document.getElementById('addShiftModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded shadow text-sm font-bold transition">+ Xếp Ca</button>
+          </div>
+          <div class="p-4 flex-1 overflow-y-auto space-y-3" id="shiftContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Inventory Tab -->
+    <div id="view-inventory" class="space-y-4 hidden">
+      <div class="bg-white/90 backdrop-blur p-5 rounded-xl shadow-lg border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-boxes-stacked text-purple-600 mr-2"></i> Quản Lý Tồn Kho Thông Minh</h2>
+        <button onclick="document.getElementById('addInvModal').classList.remove('hidden')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow text-sm font-bold transition">+ Nhập Hàng Mới</button>
+      </div>
+      
+      <!-- Cảnh báo thông minh -->
+      <div id="invAlert" class="hidden bg-rose-100 border-l-4 border-rose-500 text-rose-700 p-4 rounded-lg shadow-sm mb-4">
+        <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Cảnh báo: Có mặt hàng sắp hết!</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-lg border border-slate-100 overflow-x-auto">
+        <table class="hyky-table">
+          <thead>
+            <tr>
+              <th>Mặt Hàng</th>
+              <th>Danh Mục</th>
+              <th>Chi Nhánh</th>
+              <th class="text-center">Số Lượng Tồn</th>
+              <th>Đơn Vị</th>
+              <th class="text-center">Cập Nhật</th>
+            </tr>
+          </thead>
+          <tbody id="invTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. Store Checklists Tab -->
+    <div id="view-store" class="space-y-4 hidden">
+      <div class="bg-white/90 backdrop-blur p-5 rounded-xl shadow-lg border border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-list-check text-emerald-600 mr-2"></i> Công Việc Hàng Ngày (Checklist)</h2>
+        <div class="flex gap-2">
+          <input type="text" id="newTaskName" placeholder="Thêm công việc..." class="border rounded px-3 py-2 text-sm outline-none w-64 shadow-inner">
+          <select id="newTaskBranch" class="border rounded px-3 py-2 text-sm outline-none shadow-inner">
+            <option>Chi nhánh Quận 1 - Lê Lợi</option>
+            <option>Chi nhánh Gò Vấp - Quang Trung</option>
+            <option>Chi nhánh Quận 7 - Nguyễn Văn Linh</option>
+            <option>Kiosk Sinh Viên - Thủ Đức</option>
+            <option>Kho Tổng Hợp StoreMate</option>
+          </select>
+          <button onclick="addTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded shadow text-sm font-bold transition">Thêm</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="taskContainer"></div>
+    </div>
+
+    <!-- 5. Finance & Sales Tab -->
+    <div id="view-finance" class="space-y-5 hidden">
+      
+      <!-- Ghi nhận form -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white/90 backdrop-blur rounded-xl shadow-lg border border-slate-100 p-5 md:col-span-2">
+          <h3 class="font-bold text-slate-800 mb-3 border-b pb-2"><i class="fa-solid fa-money-bill-transfer text-emerald-600 mr-1"></i> Ghi Nhận Thu / Chi</h3>
+          <div class="flex gap-4 items-end">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-slate-500 mb-1">Loại Phiếu</label>
+              <select id="transType" class="w-full border rounded px-3 py-2 outline-none text-sm font-bold"><option value="Thu" class="text-emerald-600">THU</option><option value="Chi" class="text-rose-600">CHI</option></select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-slate-500 mb-1">Số Tiền (VNĐ)</label>
+              <input type="number" id="transAmount" placeholder="0" class="w-full border rounded px-3 py-2 outline-none text-sm font-bold">
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-slate-500 mb-1">Ghi Chú</label>
+              <input type="text" id="transCat" placeholder="VD: Doanh thu sáng, Tiền điện..." class="w-full border rounded px-3 py-2 outline-none text-sm">
+            </div>
+            <button onclick="addTransaction()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded shadow text-sm font-bold transition">Lưu Phiếu</button>
+          </div>
+        </div>
+        
+        <div class="bg-white/90 backdrop-blur rounded-xl shadow-lg border border-slate-100 p-5">
+          <h3 class="font-bold text-slate-800 mb-3 border-b pb-2"><i class="fa-solid fa-receipt text-blue-600 mr-1"></i> Chốt Đơn Cuối Ngày</h3>
+           <div class="flex gap-3 items-end">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-slate-500 mb-1">Tổng Số Đơn Bán</label>
+              <input type="number" id="dailyOrders" placeholder="Nhập số đơn..." class="w-full border rounded px-3 py-2 outline-none text-sm font-bold">
+            </div>
+            <button onclick="addOrder()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-bold transition">Chốt</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tables -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
+          <div class="bg-slate-800 text-white p-3 font-bold text-sm uppercase tracking-wider">Lịch Sử Giao Dịch Thu / Chi</div>
+          <div class="p-0 overflow-y-auto" style="max-height: 500px;">
+            <table class="hyky-table">
+              <thead><tr><th>Loại</th><th>Số Tiền</th><th>Ghi Chú</th><th>Thời Gian</th></tr></thead>
+              <tbody id="transTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
+          <div class="bg-slate-800 text-white p-3 font-bold text-sm uppercase tracking-wider">Thống Kê Đơn Hàng</div>
+          <div class="p-0 overflow-y-auto" style="max-height: 500px;">
+            <table class="hyky-table">
+              <thead><tr><th>Ngày</th><th class="text-center">Số Lượng Đơn</th></tr></thead>
+              <tbody id="ordersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-2 rounded shadow-xl font-bold text-sm transition-opacity opacity-0 pointer-events-none z-50">Đã copy link!</div>
+
+  <!-- Modals -->
+  <!-- Add Inventory Modal -->
+  <div id="addInvModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex justify-center items-center backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-[450px]">
+      <h3 class="text-xl font-black text-slate-800 mb-4 border-b pb-2">Nhập Hàng Mới</h3>
+      <div class="space-y-4">
+        <div><label class="block text-xs font-bold text-slate-500">Tên Mặt Hàng</label><input type="text" id="invName" class="w-full border rounded px-3 py-2 outline-none"></div>
+        <div><label class="block text-xs font-bold text-slate-500">Danh Mục</label><input type="text" id="invCategory" class="w-full border rounded px-3 py-2 outline-none"></div>
+        <div><label class="block text-xs font-bold text-slate-500">Chi Nhánh</label><select id="invBranch" class="w-full border rounded px-3 py-2 outline-none">
+          <option>Chi nhánh Quận 1 - Lê Lợi</option><option>Chi nhánh Gò Vấp - Quang Trung</option><option>Chi nhánh Quận 7 - Nguyễn Văn Linh</option><option>Kiosk Sinh Viên - Thủ Đức</option><option>Kho Tổng Hợp StoreMate</option>
+        </select></div>
+        <div class="flex gap-3">
+          <div class="flex-1"><label class="block text-xs font-bold text-slate-500">Số Lượng</label><input type="number" id="invQty" class="w-full border rounded px-3 py-2 outline-none font-bold"></div>
+          <div class="flex-1"><label class="block text-xs font-bold text-slate-500">Đơn Vị Tính</label><input type="text" id="invUnit" placeholder="kg, cái, hộp..." class="w-full border rounded px-3 py-2 outline-none"></div>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button onclick="document.getElementById('addInvModal').classList.add('hidden')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded font-bold hover:bg-slate-300 transition">Hủy</button>
+        <button onclick="saveInventory()" class="px-4 py-2 bg-purple-600 text-white rounded font-bold hover:bg-purple-700 shadow transition">Lưu Hàng Mới</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Shift Modal -->
+  <div id="addShiftModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex justify-center items-center backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-[450px]">
+      <h3 class="text-xl font-black text-slate-800 mb-4 border-b pb-2">Xếp Ca Làm Việc Mới</h3>
+      <div class="space-y-4">
+        <div><label class="block text-xs font-bold text-slate-500">Ngày Làm Việc</label><input type="date" id="shiftDate" class="w-full border rounded px-3 py-2 outline-none font-bold"></div>
+        <div class="flex gap-3">
+          <div class="flex-1"><label class="block text-xs font-bold text-slate-500">Giờ Bắt Đầu</label><input type="time" id="shiftStart" class="w-full border rounded px-3 py-2 outline-none font-bold"></div>
+          <div class="flex-1"><label class="block text-xs font-bold text-slate-500">Giờ Kết Thúc</label><input type="time" id="shiftEnd" class="w-full border rounded px-3 py-2 outline-none font-bold"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">Chọn Nhân Viên (Giữ Ctrl để chọn nhiều)</label>
+          <select id="shiftEmps" multiple class="w-full border rounded px-3 py-2 outline-none text-sm h-32 shadow-inner"></select>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button onclick="document.getElementById('addShiftModal').classList.add('hidden')" class="px-4 py-2 bg-slate-200 text-slate-700 rounded font-bold hover:bg-slate-300 transition">Hủy</button>
+        <button onclick="saveShift()" class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 shadow transition">Lưu Ca</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    let globalEmployees = [];
+
+    async function forceInitDb() {
+      const btn = event.currentTarget;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tạo...';
+      try {
+        const res = await fetch(`${API_BASE}/force-init-db`);
+        if (res.ok) {
+          alert('Tạo dữ liệu thành công! Vui lòng chờ vài giây để tải lại.');
+          setTimeout(() => location.reload(), 2000);
+        } else {
+          alert('Có lỗi xảy ra.');
+        }
+      } catch (err) {
+        alert('Lỗi kết nối.');
+      }
+      btn.innerHTML = '<i class="fa-solid fa-database mr-1"></i> TẠO 50 DỮ LIỆU MẪU';
+    }
+
+    function copyLink(path) {
+      const url = window.location.origin + path;
+      navigator.clipboard.writeText(url);
+      const toast = document.getElementById('toast');
+      toast.classList.remove('opacity-0');
+      setTimeout(() => toast.classList.add('opacity-0'), 2000);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      ['hr', 'leave', 'inventory', 'store', 'finance'].forEach(t => {
+        document.getElementById('view-' + t).classList.add('hidden');
+      });
+      document.getElementById('view-' + tab).classList.remove('hidden');
+
+      if (tab === 'hr') loadEmployees();
+      if (tab === 'leave') { loadLeaveRequests(); loadShifts(); loadEmpDropdown(); }
+      if (tab === 'inventory') loadInventory();
+      if (tab === 'store') loadChecklists();
+      if (tab === 'finance') { loadTransactions(); loadOrders(); }
+    }
+
+    // --- HR ---
+    async function loadEmployees() {
+      const res = await fetch(`${API_BASE}/employees`);
+      const data = await res.json();
+      globalEmployees = data;
+      const tbody = document.getElementById('empTableBody');
+      tbody.innerHTML = '';
+      data.forEach((e, i) => {
+        let stBadge = e.status === 'Đang làm việc' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600';
+        tbody.innerHTML += `
+          <tr>
+            <td class="text-center font-bold text-slate-400">${i+1}</td>
+            <td class="font-bold text-slate-800">${e.name}</td>
+            <td><span class="badge bg-slate-200 text-slate-700">${e.branch}</span></td>
+            <td>${e.position || '-'}</td>
+            <td>${e.phone || '-'}</td>
+            <td><span class="badge bg-blue-100 text-blue-700">${e.shift || '-'}</span></td>
+            <td><span class="badge ${stBadge}">${e.status}</span></td>
+            <td class="text-center">
+              <button onclick="deleteEmployee(${e.id})" class="text-rose-500 hover:text-rose-700 font-bold px-2"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function deleteEmployee(id) {
+      if(!confirm('Xác nhận xóa nhân viên này?')) return;
+      await fetch(`${API_BASE}/employees/${id}`, { method: 'DELETE' });
+      loadEmployees();
+    }
+
+    // --- Leave & Shifts ---
+    async function loadLeaveRequests() {
+      const res = await fetch(`${API_BASE}/leave-requests`);
+      const data = await res.json();
+      const c = document.getElementById('leaveContainer');
+      c.innerHTML = '';
+      if(data.length === 0) c.innerHTML = '<p class="text-sm text-slate-400 italic">Không có đơn xin nghỉ phép nào.</p>';
+      
+      data.forEach(r => {
+        let statusBadge = r.status === 'Chờ duyệt' ? 'bg-amber-100 text-amber-700 border-amber-300' : (r.status === 'Đã duyệt' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-rose-100 text-rose-700 border-rose-300');
+        let actions = '';
+        if(r.status === 'Chờ duyệt') {
+          actions = `
+            <button onclick="updateLeave(${r.id}, 'Đã duyệt')" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded shadow font-bold hover:bg-emerald-500 transition"><i class="fa-solid fa-check mr-1"></i> Duyệt</button>
+            <button onclick="updateLeave(${r.id}, 'Từ chối')" class="text-xs bg-rose-600 text-white px-3 py-1.5 rounded shadow font-bold hover:bg-rose-500 transition"><i class="fa-solid fa-xmark mr-1"></i> Từ chối</button>
+          `;
+        }
+        c.innerHTML += `
+          <div class="bg-white border rounded-lg p-4 shadow-sm border-l-4 border-l-slate-300 hover:border-l-amber-400 transition-colors">
+            <div class="flex justify-between items-start mb-2">
+              <div><span class="font-black text-slate-800 text-base">${r.employee_name}</span> <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded ml-2">${r.branch}</span></div>
+              <span class="text-xs font-black px-2 py-1 rounded border ${statusBadge}">${r.status}</span>
+            </div>
+            <div class="text-sm text-slate-600 mb-3 bg-slate-50 p-2 rounded border">
+              <p><strong>Ngày nghỉ:</strong> <span class="text-blue-700 font-bold">${new Date(r.request_date).toLocaleDateString('vi-VN')}</span> (${r.shift_time})</p>
+              <p class="mt-1"><strong>Lý do:</strong> ${r.reason}</p>
+            </div>
+            <div class="flex gap-2 justify-end">${actions}</div>
+          </div>
+        `;
+      });
+    }
+
+    async function updateLeave(id, status) {
+      await fetch(`${API_BASE}/leave-requests/${id}/status`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadLeaveRequests();
+    }
+
+    async function loadShifts() {
+      const res = await fetch(`${API_BASE}/shifts`);
+      const data = await res.json();
+      const c = document.getElementById('shiftContainer');
+      c.innerHTML = '';
+      if(data.length === 0) c.innerHTML = '<p class="text-sm text-slate-400 italic">Chưa có ca làm việc nào được xếp.</p>';
+      
+      data.forEach(s => {
+        let emps = Array.isArray(s.assigned_employees) ? s.assigned_employees : [];
+        try { if(typeof s.assigned_employees === 'string') emps = JSON.parse(s.assigned_employees); } catch(e){}
+        let empTags = emps.map(name => `<span class="inline-block bg-white border px-2 py-0.5 rounded text-xs font-bold text-slate-600 shadow-sm">${name}</span>`).join(' ');
+        
+        c.innerHTML += `
+          <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-3 shadow-sm">
+            <p class="font-black text-slate-800 mb-2"><i class="fa-regular fa-calendar text-blue-600 mr-1"></i> ${new Date(s.work_date).toLocaleDateString('vi-VN')} <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs ml-2">${s.start_time.substring(0,5)} - ${s.end_time.substring(0,5)}</span></p>
+            <div class="flex flex-wrap gap-1 mt-1">${empTags || '<span class="text-xs text-slate-400">Trống</span>'}</div>
+          </div>
+        `;
+      });
+    }
+
+    function loadEmpDropdown() {
+      const sel = document.getElementById('shiftEmps');
+      sel.innerHTML = '';
+      globalEmployees.forEach(e => {
+        sel.innerHTML += `<option value="${e.name}">${e.name} (${e.branch})</option>`;
+      });
+    }
+
+    async function saveShift() {
+      const sel = document.getElementById('shiftEmps');
+      const selectedEmps = Array.from(sel.selectedOptions).map(opt => opt.value);
+      const payload = {
+        work_date: document.getElementById('shiftDate').value,
+        start_time: document.getElementById('shiftStart').value,
+        end_time: document.getElementById('shiftEnd').value,
+        assigned_employees: selectedEmps
+      };
+      
+      await fetch(`${API_BASE}/shifts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('addShiftModal').classList.add('hidden');
+      loadShifts();
+    }
+
+    // --- Inventory ---
+    async function loadInventory() {
+      const res = await fetch(`${API_BASE}/inventory`);
+      const data = await res.json();
+      const tbody = document.getElementById('invTableBody');
+      tbody.innerHTML = '';
+      
+      let hasLowStock = false;
+      
+      data.forEach(item => {
+        let qtyClass = item.quantity < 10 ? 'text-rose-600 font-black' : 'font-bold text-slate-800';
+        if(item.quantity < 10) hasLowStock = true;
+        
+        tbody.innerHTML += `
+          <tr>
+            <td class="font-bold text-slate-800">${item.item_name}</td>
+            <td><span class="badge bg-slate-100 text-slate-600">${item.category}</span></td>
+            <td><span class="badge bg-purple-100 text-purple-700">${item.branch}</span></td>
+            <td class="text-center text-lg ${qtyClass}">${item.quantity}</td>
+            <td>${item.unit}</td>
+            <td class="text-center">
+              <div class="flex justify-center gap-1">
+                <button onclick="updateQty(${item.id}, ${item.quantity - 1})" class="bg-slate-200 hover:bg-slate-300 w-7 h-7 rounded font-black transition">-</button>
+                <button onclick="updateQty(${item.id}, ${item.quantity + 1})" class="bg-emerald-200 hover:bg-emerald-300 text-emerald-900 w-7 h-7 rounded font-black transition">+</button>
+                <button onclick="deleteInventory(${item.id})" class="ml-2 text-rose-500 hover:text-rose-700 font-bold"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      const alertBox = document.getElementById('invAlert');
+      if(hasLowStock) alertBox.classList.remove('hidden');
+      else alertBox.classList.add('hidden');
+    }
+
+    async function saveInventory() {
+      const payload = {
+        item_name: document.getElementById('invName').value,
+        category: document.getElementById('invCategory').value,
+        branch: document.getElementById('invBranch').value,
+        quantity: parseInt(document.getElementById('invQty').value || 0),
+        unit: document.getElementById('invUnit').value
+      };
+      await fetch(`${API_BASE}/inventory`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      document.getElementById('addInvModal').classList.add('hidden');
+      loadInventory();
+    }
+    async function updateQty(id, newQty) {
+      if(newQty < 0) return;
+      await fetch(`${API_BASE}/inventory/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity: newQty }) });
+      loadInventory();
+    }
+    async function deleteInventory(id) {
+      if(!confirm('Xác nhận xóa mặt hàng này?')) return;
+      await fetch(`${API_BASE}/inventory/${id}`, { method: 'DELETE' });
+      loadInventory();
+    }
+
+    // --- Checklists ---
+    async function loadChecklists() {
+      const res = await fetch(`${API_BASE}/checklists`);
+      const data = await res.json();
+      const container = document.getElementById('taskContainer');
+      container.innerHTML = '';
+      
+      const groups = {};
+      data.forEach(t => { if(!groups[t.branch]) groups[t.branch] = []; groups[t.branch].push(t); });
+
+      for (const [branch, tasks] of Object.entries(groups)) {
+        let completed = tasks.filter(t => t.is_completed).length;
+        let pct = Math.round((completed / tasks.length) * 100) || 0;
+        
+        let html = `
+          <div class="bg-white/95 backdrop-blur rounded-xl shadow-lg border-t-4 border-t-emerald-500 p-4">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-black text-slate-800 text-sm">${branch}</h3>
+              <span class="text-xs font-bold text-slate-500">${completed}/${tasks.length}</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-1.5 mb-4">
+              <div class="bg-emerald-500 h-1.5 rounded-full" style="width:${pct}%"></div>
+            </div>
+            <div class="space-y-2">`;
+            
+        tasks.forEach(t => {
+          const checked = t.is_completed ? 'checked' : '';
+          const lineThrough = t.is_completed ? 'line-through text-slate-400' : 'text-slate-800 font-bold';
+          html += `
+            <div class="flex items-center gap-3 hover:bg-slate-50 p-2 rounded border border-transparent hover:border-slate-200 transition">
+              <input type="checkbox" ${checked} onchange="toggleTask(${t.id}, this.checked)" class="w-4 h-4 accent-emerald-600 cursor-pointer">
+              <span class="${lineThrough} flex-1 text-sm">${t.task_name}</span>
+              <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-600"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+        container.innerHTML += html;
+      }
+    }
+
+    async function addTask() {
+      const name = document.getElementById('newTaskName').value;
+      const branch = document.getElementById('newTaskBranch').value;
+      if (!name) return;
+      await fetch(`${API_BASE}/checklists`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ branch, task_name: name }) });
+      document.getElementById('newTaskName').value = '';
+      loadChecklists();
+    }
+    async function toggleTask(id, is_completed) {
+      await fetch(`${API_BASE}/checklists/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_completed }) });
+      loadChecklists();
+    }
+    async function deleteTask(id) {
+      await fetch(`${API_BASE}/checklists/${id}`, { method: 'DELETE' });
+      loadChecklists();
+    }
+
+    // --- Finances & Orders ---
+    async function loadTransactions() {
+      const res = await fetch(`${API_BASE}/transactions`);
+      const data = await res.json();
+      const tbody = document.getElementById('transTableBody');
+      tbody.innerHTML = '';
+      data.forEach(t => {
+        const color = t.trans_type === 'Thu' ? 'text-emerald-600' : 'text-rose-600';
+        const sign = t.trans_type === 'Thu' ? '+' : '-';
+        const amt = parseFloat(t.amount).toLocaleString('vi-VN');
+        tbody.innerHTML += `
+          <tr>
+            <td class="font-black ${color}">${t.trans_type}</td>
+            <td class="font-bold ${color}">${sign} ${amt} đ</td>
+            <td>${t.category || '-'} <span class="text-xs text-slate-400 block">Bởi: ${t.creator}</span></td>
+            <td class="text-xs font-bold text-slate-500">${new Date(t.created_at).toLocaleString('vi-VN')}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function loadOrders() {
+      const res = await fetch(`${API_BASE}/orders`);
+      const data = await res.json();
+      const tbody = document.getElementById('ordersTableBody');
+      tbody.innerHTML = '';
+      data.forEach(o => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="font-bold text-slate-800">${new Date(o.order_date).toLocaleDateString('vi-VN')}</td>
+            <td class="text-center font-black text-blue-700 text-lg">${o.total_orders} <span class="text-xs text-slate-500 font-normal">đơn</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    async function addTransaction() {
+      const payload = {
+        trans_type: document.getElementById('transType').value,
+        amount: parseFloat(document.getElementById('transAmount').value || 0),
+        category: document.getElementById('transCat').value,
+        creator: 'Admin Quản Lý'
+      };
+      await fetch(`${API_BASE}/transactions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      document.getElementById('transAmount').value = '';
+      document.getElementById('transCat').value = '';
+      loadTransactions();
+    }
+
+    async function addOrder() {
+      const payload = {
+        order_date: new Date().toISOString().split('T')[0],
+        total_orders: parseInt(document.getElementById('dailyOrders').value || 0),
+        notes: ''
+      };
+      await fetch(`${API_BASE}/orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      document.getElementById('dailyOrders').value = '';
+      loadOrders();
+    }
+
+    // Init
+    loadEmployees();
+    switchTab('hr');
+
+  </script>
+</body>
+</html>
