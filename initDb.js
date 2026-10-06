@@ -1,10 +1,18 @@
 require('dotenv').config();
 const { Client } = require('pg');
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const dbConfig = process.env.DATABASE_URL 
+  ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
+  : {
+      host: process.env.DB_HOST || 'vays-db-d86f1291-postgresql-5432',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'storemate_db',
+      user: process.env.DB_USER || 'user_3485979523c3',
+      password: process.env.DB_PASSWORD,
+      ssl: { rejectUnauthorized: false }
+    };
+
+const client = new Client(dbConfig);
 
 async function initDb() {
   try {

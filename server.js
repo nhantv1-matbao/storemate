@@ -9,10 +9,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const dbConfig = process.env.DATABASE_URL 
+  ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
+  : {
+      host: process.env.DB_HOST || 'vays-db-d86f1291-postgresql-5432',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'storemate_db',
+      user: process.env.DB_USER || 'user_3485979523c3',
+      password: process.env.DB_PASSWORD,
+      ssl: { rejectUnauthorized: false }
+    };
+
+const pool = new Pool(dbConfig);
 
 // Chạy tự động initDb mỗi khi server khởi động
 require('./initDb.js');
