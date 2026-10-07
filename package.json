@@ -4,7 +4,7 @@
   "description": "Unified HR, Store, and Inventory Management System",
   "main": "server.js",
   "scripts": {
-    "start": "node initDb.js && node server.js",
+    "start": "node server.js",
     "init-db": "node initDb.js"
   },
   "dependencies": {
