@@ -58,10 +58,7 @@
     <div id="view-hr" class="space-y-4">
       <div class="bg-white/90 backdrop-blur p-5 rounded-xl shadow-lg border border-slate-100 flex justify-between items-center">
         <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-users text-emerald-600 mr-2"></i> Danh Sách Nhân Sự</h2>
-        <div class="flex gap-3">
-          <button onclick="forceInitDb()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded shadow text-sm transition"><i class="fa-solid fa-database mr-1"></i> TẠO 50 DỮ LIỆU MẪU</button>
-          <button onclick="loadEmployees()" class="text-slate-500 hover:text-emerald-600 bg-slate-100 px-3 py-1.5 rounded text-sm font-bold"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
-        </div>
+        <button onclick="alert('Đã tải lại dữ liệu')" class="text-slate-500 hover:text-emerald-600"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
       </div>
       <div class="bg-white rounded-xl shadow-lg border border-slate-100 overflow-x-auto">
         <table class="hyky-table">
@@ -262,32 +259,8 @@
   </div>
 
   <script>
-    const API_BASE = '/api';
+    const API_BASE = 'http://localhost:3000/api';
     let globalEmployees = [];
-
-    // Chặn chạy local không qua server
-    if (window.location.protocol === 'file:') {
-      alert("LỖI NGHIÊM TRỌNG: Bạn đang mở file index.html trực tiếp từ máy tính (file://). Ứng dụng này yêu cầu phải được chạy trên máy chủ (như Vibehost hoặc Node.js local) để có thể kết nối với Cơ sở dữ liệu. Vui lòng đẩy code lên Vibehost để xem!");
-    }
-
-    async function forceInitDb() {
-      const btn = event.currentTarget;
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tạo...';
-      try {
-        const res = await fetch(`${API_BASE}/force-init-db`);
-        const data = await res.json();
-        if (res.ok) {
-          alert('Tạo dữ liệu thành công! Web sẽ tự tải lại.');
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          alert('Lỗi từ Server: ' + (data.error || 'Không rõ nguyên nhân'));
-        }
-      } catch (err) {
-        alert('Lỗi kết nối mạng: Không thể gọi đến API máy chủ. Bạn đã chạy server chưa?');
-      }
-      btn.innerHTML = originalText;
-    }
 
     function copyLink(path) {
       const url = window.location.origin + path;
@@ -424,19 +397,12 @@
         assigned_employees: selectedEmps
       };
       
-      try {
-        const res = await fetch(`${API_BASE}/shifts`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        
-        document.getElementById('addShiftModal').classList.add('hidden');
-        loadShifts();
-      } catch (err) {
-        alert("Lỗi khi xếp ca: " + err.message);
-      }
+      await fetch(`${API_BASE}/shifts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('addShiftModal').classList.add('hidden');
+      loadShifts();
     }
 
     // --- Inventory ---

@@ -224,4 +224,4 @@ async function initDb() {
   }
 }
 
-initDb();
+module.exports = initDb;
