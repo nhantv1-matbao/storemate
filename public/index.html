@@ -3,248 +3,221 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StoreMate OS - Quản Lý Toàn Diện</title>
+  <title>StoreMate - Smart Operations</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #f4f7fe; }
-    .nav-item.active { background: linear-gradient(90deg, #ecfdf5 0%, transparent 100%); color: #059669; border-left: 4px solid #059669; }
-    .nav-item { border-left: 4px solid transparent; }
-    .nav-item:hover:not(.active) { background-color: #f1f5f9; }
-    .glass-card { background: #ffffff; border-radius: 16px; box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.04); }
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+    body { 
+      font-family: 'Montserrat', sans-serif; 
+      background: url('bg.jpg') no-repeat center center fixed; 
+      background-size: cover;
+    }
+    .backdrop-blur-custom {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background-color: rgba(255, 255, 255, 0.85);
+    }
+    .dark-glass {
+      backdrop-filter: blur(16px);
+      background-color: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .nav-item { border-bottom: 3px solid transparent; transition: all 0.3s; }
+    .nav-item.active { border-bottom: 3px solid #059669; color: #059669; font-weight: 700; }
+    .nav-item:hover:not(.active) { color: #059669; }
+    
     table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    th { background-color: #f8fafc; color: #64748b; font-weight: 600; font-size: 0.75rem; padding: 16px; text-align: left; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 16px; font-size: 0.875rem; color: #334155; border-bottom: 1px solid #e2e8f0; }
-    tr:hover td { background-color: #f8fafc; }
-    .hide { display: none !important; }
-    .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
+    th { background-color: #1e293b; color: #f8fafc; font-weight: 600; font-size: 0.85rem; padding: 14px; text-align: left; text-transform: uppercase; border-right: 1px solid rgba(255,255,255,0.1); }
+    td { padding: 14px; font-size: 0.95rem; color: #334155; border-bottom: 1px solid #e2e8f0; background: #fff;}
+    tr:hover td { background-color: #f1f5f9; }
+    .badge { padding: 4px 12px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
     .badge-success { background: #dcfce7; color: #166534; }
     .badge-warning { background: #fef9c3; color: #854d0e; }
     .badge-danger { background: #fee2e2; color: #991b1b; }
-    /* POS Grid */
-    .pos-item { transition: all 0.2s; cursor: pointer; }
-    .pos-item:active { transform: scale(0.95); }
+    .hide { display: none !important; }
   </style>
 </head>
-<body class="flex h-screen overflow-hidden text-slate-800">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-white border-r border-slate-100 flex flex-col z-20 hidden md:flex shadow-sm">
-    <div class="h-20 flex items-center px-6">
-      <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white mr-3 shadow-lg shadow-emerald-200">
-        <i class="fa-solid fa-store text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-xl font-bold text-slate-800 tracking-tight">StoreMate</h1>
-        <p class="text-xs text-emerald-600 font-semibold uppercase tracking-wider">Hệ Điều Hành</p>
-      </div>
-    </div>
-    
-    <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto px-2">
-      <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">Bán Hàng</p>
-      <a href="#pos" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="pos-view">
-        <i class="fa-solid fa-cash-register w-6"></i> Máy POS
-      </a>
-      <a href="#customers" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="crm-view">
-        <i class="fa-solid fa-crown w-6"></i> Khách Hàng
-      </a>
-      
-      <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Quản Trị</p>
-      <a href="#dashboard" class="nav-item active rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="dashboard-view">
-        <i class="fa-solid fa-chart-line w-6"></i> Tổng Quan
-      </a>
-      <a href="#finance" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="finance-view">
-        <i class="fa-solid fa-wallet w-6"></i> Tài Chính
-      </a>
-      <a href="#inventory" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="inventory-view">
-        <i class="fa-solid fa-boxes-stacked w-6"></i> Tồn Kho & Menu
-      </a>
-
-      <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Nhân Sự</p>
-      <a href="#attendance" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="attendance-view">
-        <i class="fa-solid fa-user-clock w-6"></i> Máy Chấm Công
-      </a>
-      <a href="#employees" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="employees-view">
-        <i class="fa-solid fa-users w-6"></i> Hồ Sơ NS
-      </a>
-      <a href="#leave" class="nav-item rounded-lg flex items-center px-4 py-3 text-sm font-semibold text-slate-600 transition" data-view="leave-view">
-        <i class="fa-solid fa-bed w-6"></i> Nghỉ Phép
-      </a>
-    </nav>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="flex-1 flex flex-col h-screen overflow-hidden">
-    <!-- Topbar -->
-    <header class="h-20 bg-white/80 backdrop-blur border-b border-slate-100 flex items-center justify-between px-8 z-10">
-      <h2 id="page-title" class="text-2xl font-bold text-slate-800">Tổng Quan Hệ Thống</h2>
+  <!-- Premium Top Navbar -->
+  <header class="backdrop-blur-custom shadow-lg z-50 flex flex-col">
+    <div class="h-20 px-8 flex items-center justify-between border-b border-slate-200/50">
       <div class="flex items-center gap-4">
-        <button onclick="forceInitDb()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
-          <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Làm Mới Hệ Thống
-        </button>
-      </div>
-    </header>
-
-    <!-- Scrollable Area -->
-    <div class="flex-1 overflow-y-auto p-8">
-      
-      <!-- 1. DASHBOARD -->
-      <div id="dashboard-view" class="view-section space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div class="glass-card p-6 border-t-4 border-emerald-500">
-            <p class="text-sm font-bold text-slate-400 uppercase">Doanh thu hôm nay</p>
-            <h3 class="text-3xl font-black text-slate-800 mt-2" id="db-rev">0 ₫</h3>
-          </div>
-          <div class="glass-card p-6 border-t-4 border-blue-500">
-            <p class="text-sm font-bold text-slate-400 uppercase">Đơn hàng đã bán</p>
-            <h3 class="text-3xl font-black text-slate-800 mt-2" id="db-ord">0</h3>
-          </div>
-          <div class="glass-card p-6 border-t-4 border-amber-500">
-            <p class="text-sm font-bold text-slate-400 uppercase">Tổng nhân sự</p>
-            <h3 class="text-3xl font-black text-slate-800 mt-2" id="db-emp">0</h3>
-          </div>
-        </div>
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-bold text-slate-800 mb-6">Biểu đồ doanh thu (7 ngày qua)</h3>
-          <canvas id="revChart" height="80"></canvas>
+        <img src="logo.jpg" alt="Logo" class="h-14 w-14 rounded-full border-2 border-emerald-500 shadow-sm object-cover bg-white" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
+        <div>
+          <h1 class="text-2xl font-black tracking-tight text-slate-800">STORE MATE</h1>
+          <p class="text-xs font-bold text-emerald-600 tracking-widest">SMART OPERATIONS</p>
         </div>
       </div>
-
-      <!-- 2. POS BÁN HÀNG -->
-      <div id="pos-view" class="view-section hide flex gap-6 h-full">
-        <!-- Products Grid -->
-        <div class="flex-1 flex flex-col">
-          <div class="bg-white p-4 rounded-xl shadow-sm mb-4 flex gap-4">
-            <input type="text" placeholder="Tìm món..." class="flex-1 bg-slate-50 border-none rounded-lg px-4 outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div class="flex-1 overflow-y-auto pr-2">
-            <div id="pos-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <!-- Dynamically loaded -->
-            </div>
-          </div>
-        </div>
-        <!-- Cart -->
-        <div class="w-96 bg-white rounded-2xl shadow-xl border border-slate-100 flex flex-col overflow-hidden">
-          <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
-            <h3 class="font-bold"><i class="fa-solid fa-receipt mr-2"></i> Hóa Đơn Hiện Tại</h3>
-            <button onclick="clearCart()" class="text-rose-400 hover:text-rose-300 text-sm"><i class="fa-solid fa-trash"></i> Hủy</button>
-          </div>
-          <div id="pos-cart" class="flex-1 overflow-y-auto p-4 space-y-3">
-            <!-- Cart Items -->
-            <div class="text-center text-slate-400 mt-10 text-sm font-medium">Chưa có món nào được chọn.</div>
-          </div>
-          <div class="p-6 bg-slate-50 border-t border-slate-100">
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-slate-500 font-semibold">Tích điểm KH (SĐT):</span>
-              <input type="text" id="pos-phone" placeholder="Nhập SĐT..." class="w-32 border border-slate-300 rounded px-2 py-1 text-sm outline-none">
-            </div>
-            <div class="flex justify-between items-center mb-4">
-              <span class="text-lg font-bold text-slate-700">TỔNG CỘNG:</span>
-              <span id="pos-total" class="text-2xl font-black text-emerald-600">0 ₫</span>
-            </div>
-            <button onclick="checkout()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-lg font-bold py-4 rounded-xl shadow-lg shadow-emerald-200 transition transform hover:scale-[1.02]">
-              THANH TOÁN (TIỀN MẶT)
-            </button>
-          </div>
-        </div>
+      <nav class="hidden md:flex gap-8 h-full items-end pb-1">
+        <a href="#dashboard" class="nav-item active pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="dashboard-view">Tổng Quan</a>
+        <a href="#employees" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="employees-view">Nhân Sự</a>
+        <a href="#leave" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="leave-view">Nghỉ Phép</a>
+        <a href="#inventory" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="inventory-view">Kho & Menu</a>
+        <a href="#crm" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="crm-view">Khách Hàng</a>
+        <a href="#finance" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="finance-view">Tài Chính</a>
+      </nav>
+      <div class="flex items-center gap-4">
+        <a href="/pos" target="_blank" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5">
+          <i class="fa-solid fa-cash-register mr-2"></i> MỞ MÁY POS
+        </a>
       </div>
-
-      <!-- 3. CHẤM CÔNG -->
-      <div id="attendance-view" class="view-section hide space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="glass-card p-8 text-center flex flex-col items-center justify-center">
-            <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-4xl mb-4 shadow-inner">
-              <i class="fa-solid fa-fingerprint"></i>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-4">Máy Chấm Công Thông Minh</h3>
-            <select id="att-emp" class="w-full max-w-sm border-2 border-slate-200 rounded-xl p-3 outline-none text-center font-bold text-slate-700 mb-6 focus:border-blue-500">
-              <option value="">-- Chọn nhân sự để chấm công --</option>
-            </select>
-            <div class="flex gap-4 w-full max-w-sm">
-              <button onclick="clockIn()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md transition"><i class="fa-solid fa-right-to-bracket"></i> VÀO CA</button>
-              <button onclick="clockOut()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl shadow-md transition"><i class="fa-solid fa-right-from-bracket"></i> RA CA</button>
-            </div>
-          </div>
-          <div class="glass-card p-6 overflow-hidden flex flex-col">
-            <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i> Lượt chấm công hôm nay</h3>
-            <div class="overflow-y-auto flex-1">
-              <table id="att-table">
-                <thead><tr><th>Nhân sự</th><th>Giờ Vào</th><th>Giờ Ra</th></tr></thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. KHÁCH HÀNG CRM -->
-      <div id="crm-view" class="view-section hide space-y-6">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-bold text-slate-800">Thành Viên Khách Hàng (Tích điểm)</h3>
-          <button onclick="addCustomer()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold shadow"><i class="fa-solid fa-plus"></i> KH Mới</button>
-        </div>
-        <div class="glass-card overflow-hidden">
-          <table id="crm-table">
-            <thead><tr><th>Khách hàng</th><th>Số điện thoại</th><th>Điểm tích lũy</th><th>Hạng</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Existing Views: Employees, Finance, Inventory, Leave -->
-      <!-- EMPLOYEES -->
-      <div id="employees-view" class="view-section hide space-y-6">
-        <div class="glass-card overflow-hidden">
-          <table id="emp-table">
-            <thead><tr><th>Nhân viên</th><th>Chi nhánh</th><th>Ca</th><th>SĐT</th><th>Chức vụ</th><th>Thao tác</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- INVENTORY -->
-      <div id="inventory-view" class="view-section hide space-y-6">
-        <div class="grid grid-cols-2 gap-6">
-          <div class="glass-card overflow-hidden p-6">
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Kho Nguyên Liệu</h3>
-            <table id="inv-table"><thead><tr><th>Tên</th><th>SL</th><th>Cảnh báo</th></tr></thead><tbody></tbody></table>
-          </div>
-          <div class="glass-card overflow-hidden p-6">
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Menu Sản Phẩm (Hiển thị POS)</h3>
-            <table id="menu-table"><thead><tr><th>Món</th><th>Giá</th></tr></thead><tbody></tbody></table>
-          </div>
-        </div>
-      </div>
-
-      <!-- FINANCE -->
-      <div id="finance-view" class="view-section hide space-y-6">
-        <div class="glass-card overflow-hidden p-6">
-          <h3 class="text-lg font-bold text-slate-800 mb-4">Dòng tiền Giao dịch</h3>
-          <table id="fin-table"><thead><tr><th>Thời gian</th><th>Loại</th><th>Hạng mục</th><th>Số tiền</th></tr></thead><tbody></tbody></table>
-        </div>
-      </div>
-
-      <!-- LEAVE -->
-      <div id="leave-view" class="view-section hide space-y-6">
-        <div class="glass-card overflow-hidden p-6">
-          <h3 class="text-lg font-bold text-slate-800 mb-4">Duyệt Đơn Xin Nghỉ</h3>
-          <table id="leave-table"><thead><tr><th>Nhân viên</th><th>Ngày xin</th><th>Lý do</th><th>Trạng thái</th><th>Duyệt</th></tr></thead><tbody></tbody></table>
-        </div>
-      </div>
-
     </div>
+    <!-- Sub Bar for Links -->
+    <div class="bg-emerald-800 text-white px-8 py-2 flex items-center justify-between text-sm shadow-inner">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-link"></i> <span class="font-medium">Chia sẻ liên kết cho Nhân viên (Không cần đăng nhập):</span>
+      </div>
+      <div class="flex gap-4">
+        <a href="/onboard" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-1 rounded text-white font-semibold transition"><i class="fa-solid fa-user-plus mr-1"></i> Link Tuyển Dụng</a>
+        <a href="/leave-request" target="_blank" class="bg-amber-500 hover:bg-amber-400 px-4 py-1 rounded text-white font-semibold transition text-shadow"><i class="fa-solid fa-file-signature mr-1"></i> Link Xin Nghỉ Phép</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 overflow-y-auto p-8 z-10 relative">
+    
+    <!-- 1. DASHBOARD -->
+    <div id="dashboard-view" class="view-section space-y-8 max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="dark-glass rounded-2xl p-6 text-white shadow-2xl">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-bold text-slate-300 uppercase tracking-widest">Doanh thu hôm nay</p>
+              <h3 class="text-3xl font-black mt-2 text-emerald-400" id="db-rev">0 ₫</h3>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center"><i class="fa-solid fa-wallet text-emerald-400"></i></div>
+          </div>
+        </div>
+        <div class="dark-glass rounded-2xl p-6 text-white shadow-2xl">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-bold text-slate-300 uppercase tracking-widest">Đơn hàng đã bán</p>
+              <h3 class="text-3xl font-black mt-2 text-blue-400" id="db-ord">0</h3>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fa-solid fa-receipt text-blue-400"></i></div>
+          </div>
+        </div>
+        <div class="dark-glass rounded-2xl p-6 text-white shadow-2xl">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-bold text-slate-300 uppercase tracking-widest">Nhân sự Active</p>
+              <h3 class="text-3xl font-black mt-2 text-amber-400" id="db-emp">0</h3>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><i class="fa-solid fa-users text-amber-400"></i></div>
+          </div>
+        </div>
+        <div class="dark-glass rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-emerald-900/50 transition border-emerald-500/50">
+          <i class="fa-solid fa-fingerprint text-4xl text-emerald-400 mb-2"></i>
+          <h3 class="font-bold text-lg tracking-wide uppercase text-emerald-400">MÁY CHẤM CÔNG</h3>
+        </div>
+      </div>
+      
+      <div class="backdrop-blur-custom rounded-2xl p-6 shadow-xl border border-white/50">
+        <h3 class="text-lg font-bold text-slate-800 mb-6 uppercase tracking-widest"><i class="fa-solid fa-chart-line text-emerald-600 mr-2"></i> BIỂU ĐỒ DOANH THU (7 NGÀY QUA)</h3>
+        <canvas id="revChart" height="80"></canvas>
+      </div>
+    </div>
+
+    <!-- 2. EMPLOYEES -->
+    <div id="employees-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
+      <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+        <div class="bg-white rounded-xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h2 class="text-xl font-bold text-slate-800"><i class="fa-solid fa-users text-emerald-600 mr-2"></i> DANH SÁCH NHÂN SỰ</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table id="emp-table">
+              <thead><tr><th>Họ và Tên</th><th>Chi Nhánh</th><th>Ca Mặc Định</th><th>SĐT</th><th>Chức Vụ</th><th>Trạng Thái</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. LEAVE -->
+    <div id="leave-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
+      <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+        <div class="bg-white rounded-xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-amber-50">
+            <h2 class="text-xl font-bold text-amber-800"><i class="fa-solid fa-bed text-amber-600 mr-2"></i> QUẢN LÝ NGHỈ PHÉP</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table id="leave-table">
+              <thead><tr><th>Nhân viên</th><th>Ngày xin nghỉ</th><th>Ca nghỉ</th><th>Lý do</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. INVENTORY & MENU -->
+    <div id="inventory-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+          <div class="bg-white rounded-xl overflow-hidden h-full">
+            <div class="p-5 border-b border-slate-100 bg-slate-50">
+              <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-boxes-stacked text-blue-600 mr-2"></i> KHO NGUYÊN LIỆU</h2>
+            </div>
+            <div class="overflow-x-auto">
+              <table id="inv-table"><thead><tr><th>Tên mặt hàng</th><th>Tồn kho</th><th>Cảnh báo</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </div>
+        <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+          <div class="bg-white rounded-xl overflow-hidden h-full">
+            <div class="p-5 border-b border-slate-100 bg-emerald-50">
+              <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-mug-hot text-emerald-600 mr-2"></i> MENU SẢN PHẨM (POS)</h2>
+            </div>
+            <div class="overflow-x-auto">
+              <table id="menu-table"><thead><tr><th>Món</th><th>Phân loại</th><th>Giá bán</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. CRM -->
+    <div id="crm-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
+      <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+        <div class="bg-white rounded-xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+            <h2 class="text-xl font-bold text-indigo-800"><i class="fa-solid fa-crown text-indigo-600 mr-2"></i> KHÁCH HÀNG THÂN THIẾT</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table id="crm-table"><thead><tr><th>Khách hàng</th><th>Số điện thoại</th><th>Điểm tích lũy</th><th>Hạng</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. FINANCE -->
+    <div id="finance-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
+      <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+        <div class="bg-white rounded-xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-rose-50">
+            <h2 class="text-xl font-bold text-rose-800"><i class="fa-solid fa-wallet text-rose-600 mr-2"></i> SỔ TÀI CHÍNH (GIAO DỊCH)</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table id="fin-table"><thead><tr><th>Thời gian</th><th>Loại</th><th>Hạng mục</th><th>Số tiền</th><th>Người tạo</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
     const API = '/api';
     const fMoney = n => new Intl.NumberFormat('vi-VN', {style:'currency',currency:'VND'}).format(n);
+    const fDate = d => new Date(d).toLocaleDateString('vi-VN');
     let myChart = null;
-
-    // Cart State
-    let cart = {};
 
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -253,36 +226,37 @@
         document.querySelectorAll('.view-section').forEach(v => v.classList.add('hide'));
         const v = item.getAttribute('data-view');
         document.getElementById(v).classList.remove('hide');
-        document.getElementById('page-title').innerText = item.innerText;
         loadView(v);
       });
     });
 
     async function req(endpoint, method='GET', body=null) {
-      const opts = { method, headers: {} };
-      if(body) { opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
-      const res = await fetch(API+endpoint, opts);
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.error);
-      return data;
+      try {
+        const opts = { method, headers: {} };
+        if(body) { opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
+        const res = await fetch(API+endpoint, opts);
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error);
+        return data;
+      } catch (err) {
+        Swal.fire({icon: 'error', title: 'Lỗi Dữ Liệu', text: err.message, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000});
+        return [];
+      }
     }
 
     async function loadView(view) {
-      try {
-        if(view==='dashboard-view') await initDash();
-        if(view==='pos-view') await initPOS();
-        if(view==='crm-view') await initCRM();
-        if(view==='attendance-view') await initAttendance();
-        if(view==='employees-view') await initEmp();
-        if(view==='finance-view') await initFin();
-        if(view==='inventory-view') await initInv();
-        if(view==='leave-view') await initLeave();
-      } catch(e) { console.error(e); }
+      if(view==='dashboard-view') await initDash();
+      if(view==='employees-view') await initEmp();
+      if(view==='leave-view') await initLeave();
+      if(view==='inventory-view') await initInv();
+      if(view==='crm-view') await initCRM();
+      if(view==='finance-view') await initFin();
     }
 
     // DASHBOARD
     async function initDash() {
       const d = await req('/dashboard');
+      if(!d.todayRev && d.todayRev!==0) return; // Fetch failed
       document.getElementById('db-rev').innerText = fMoney(d.todayRev);
       document.getElementById('db-ord').innerText = d.todayOrders;
       document.getElementById('db-emp').innerText = d.empCount;
@@ -303,148 +277,56 @@
       });
     }
 
-    // POS
-    async function initPOS() {
-      const prods = await req('/products');
-      const grid = document.getElementById('pos-products');
-      grid.innerHTML = '';
-      prods.forEach(p => {
-        grid.innerHTML += `
-          <div onclick="addToCart(${p.id}, '${p.name}', ${p.price})" class="pos-item bg-white p-4 rounded-xl shadow border border-slate-100 flex flex-col items-center text-center hover:border-emerald-500 hover:shadow-lg">
-            <div class="w-16 h-16 rounded-full bg-slate-50 text-slate-600 flex items-center justify-center text-2xl mb-3">
-              <i class="fa-solid ${p.image_icon}"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-sm mb-1">${p.name}</h4>
-            <p class="text-emerald-600 font-black">${fMoney(p.price)}</p>
-          </div>
-        `;
-      });
-      renderCart();
-    }
-    
-    function addToCart(id, name, price) {
-      if(cart[id]) cart[id].qty++;
-      else cart[id] = { name, price, qty: 1 };
-      renderCart();
-    }
-    
-    function renderCart() {
-      const cDiv = document.getElementById('pos-cart');
-      let t = 0; cDiv.innerHTML = '';
-      if(Object.keys(cart).length === 0) { cDiv.innerHTML = '<div class="text-center text-slate-400 mt-10 text-sm font-medium">Chưa có món nào.</div>'; }
-      Object.keys(cart).forEach(id => {
-        let item = cart[id]; t += item.price * item.qty;
-        cDiv.innerHTML += `
-          <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-            <div>
-              <p class="font-bold text-slate-800 text-sm">${item.name}</p>
-              <p class="text-xs text-slate-500">${fMoney(item.price)} x ${item.qty}</p>
-            </div>
-            <div class="font-black text-slate-700">${fMoney(item.price*item.qty)}</div>
-          </div>
-        `;
-      });
-      document.getElementById('pos-total').innerText = fMoney(t);
-      document.getElementById('pos-total').setAttribute('data-total', t);
+    // EMPLOYEES
+    async function initEmp() {
+      const data = await req('/employees');
+      const tb = document.querySelector('#emp-table tbody'); tb.innerHTML = '';
+      if(data.length === 0) tb.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
+      data.forEach(d => tb.innerHTML += `<tr><td class="font-bold text-slate-700">${d.name}</td><td>${d.branch}</td><td>${d.shift}</td><td>${d.phone}</td><td class="font-medium">${d.position}</td><td><span class="badge badge-success">${d.status}</span></td></tr>`);
     }
 
-    function clearCart() { cart = {}; renderCart(); }
-
-    async function checkout() {
-      const total = parseInt(document.getElementById('pos-total').getAttribute('data-total'));
-      if(!total || total===0) return Swal.fire('Lỗi', 'Hóa đơn trống!', 'warning');
-      const phone = document.getElementById('pos-phone').value;
-      
-      Swal.fire({ title: 'Đang thanh toán...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
-      await req('/checkout', 'POST', { total, phone });
-      Swal.fire('Thành công', 'Đã in bill & ghi nhận doanh thu!', 'success');
-      clearCart(); document.getElementById('pos-phone').value='';
-    }
-
-    // ATTENDANCE
-    async function initAttendance() {
-      const emps = await req('/employees');
-      const sel = document.getElementById('att-emp');
-      sel.innerHTML = '<option value="">-- Chọn tên bạn --</option>';
-      emps.forEach(e => sel.innerHTML += `<option value="${e.id}">${e.name}</option>`);
-
-      const atts = await req('/attendances');
-      const tb = document.querySelector('#att-table tbody'); tb.innerHTML = '';
-      atts.forEach(a => {
-        tb.innerHTML += `<tr><td class="font-bold">${a.emp_name}</td><td><span class="badge badge-success">${a.check_in||'--'}</span></td><td><span class="badge badge-warning">${a.check_out||'--'}</span></td></tr>`;
+    // LEAVE
+    async function initLeave() {
+      const data = await req('/leave-requests');
+      const tb = document.querySelector('#leave-table tbody'); tb.innerHTML = '';
+      if(data.length === 0) tb.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
+      data.forEach(d => {
+        let acts = d.status==='Chờ duyệt'?`<button onclick="req('/leave-requests/${d.id}/status','PUT',{status:'Đã duyệt'}).then(initLeave)" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded font-bold text-xs transition">DUYỆT</button>`:'';
+        let badge = d.status==='Chờ duyệt'?'badge-warning':(d.status==='Đã duyệt'?'badge-success':'badge-danger');
+        tb.innerHTML += `<tr><td class="font-bold">${d.employee_name}</td><td>${fDate(d.request_date)}</td><td>${d.shift_time}</td><td>${d.reason}</td><td><span class="badge ${badge}">${d.status}</span></td><td>${acts}</td></tr>`
       });
     }
 
-    async function clockIn() {
-      const id = document.getElementById('att-emp').value;
-      if(!id) return Swal.fire('Lỗi', 'Vui lòng chọn tên!', 'warning');
-      await req('/attendance/check', 'POST', {emp_id: id, type:'in'});
-      Swal.fire('Chấm công thành công', 'Giờ vào ca đã được ghi nhận', 'success');
-      initAttendance();
-    }
-    async function clockOut() {
-      const id = document.getElementById('att-emp').value;
-      if(!id) return Swal.fire('Lỗi', 'Vui lòng chọn tên!', 'warning');
-      await req('/attendance/check', 'POST', {emp_id: id, type:'out'});
-      Swal.fire('Thành công', 'Đã ghi nhận giờ ra ca!', 'success');
-      initAttendance();
+    // INVENTORY & MENU
+    async function initInv() {
+      const data = await req('/inventory');
+      const tb = document.querySelector('#inv-table tbody'); tb.innerHTML = '';
+      data.forEach(d => tb.innerHTML += `<tr><td class="font-bold">${d.item_name}</td><td class="text-blue-600 font-bold">${d.quantity} ${d.unit}</td><td>${d.quantity<15?'<span class="badge badge-danger">Sắp hết</span>':'<span class="badge badge-success">An toàn</span>'}</td></tr>`);
+      const menu = await req('/products');
+      const tb2 = document.querySelector('#menu-table tbody'); tb2.innerHTML = '';
+      menu.forEach(d => tb2.innerHTML += `<tr><td class="font-bold"><i class="fa-solid ${d.image_icon} text-emerald-500 mr-2"></i> ${d.name}</td><td class="text-slate-500 text-xs">${d.category}</td><td class="text-emerald-600 font-bold">${fMoney(d.price)}</td></tr>`);
     }
 
     // CRM
     async function initCRM() {
       const custs = await req('/customers');
       const tb = document.querySelector('#crm-table tbody'); tb.innerHTML = '';
+      if(custs.length === 0) tb.innerHTML = `<tr><td colspan="4" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
       custs.forEach(c => {
-        let rank = c.points > 100 ? 'Vàng' : (c.points>50?'Bạc':'Đồng');
-        tb.innerHTML += `<tr><td class="font-bold">${c.name}</td><td>${c.phone}</td><td class="text-emerald-600 font-bold">${c.points}</td><td><span class="badge badge-warning">${rank}</span></td></tr>`;
+        let rank = c.points >= 100 ? 'Vàng' : (c.points>=50?'Bạc':'Đồng');
+        tb.innerHTML += `<tr><td class="font-bold">${c.name}</td><td>${c.phone}</td><td class="text-indigo-600 font-bold text-lg">${c.points}</td><td><span class="badge badge-warning"><i class="fa-solid fa-medal mr-1"></i> ${rank}</span></td></tr>`;
       });
-    }
-    async function addCustomer() {
-      const { value: formValues } = await Swal.fire({
-        title: 'Thêm Khách Hàng',
-        html: '<input id="swal-n" class="swal2-input" placeholder="Tên KH"><input id="swal-p" class="swal2-input" placeholder="SĐT">',
-        focusConfirm: false,
-        preConfirm: () => { return { name: document.getElementById('swal-n').value, phone: document.getElementById('swal-p').value } }
-      });
-      if(formValues) { await req('/customers', 'POST', formValues); initCRM(); }
     }
 
-    // OTHER INITS (Truncated for simplicity, just render tables)
-    async function initEmp() {
-      const data = await req('/employees');
-      const tb = document.querySelector('#emp-table tbody'); tb.innerHTML = '';
-      data.forEach(d => tb.innerHTML += `<tr><td class="font-bold">${d.name}</td><td>${d.branch}</td><td>${d.shift}</td><td>${d.phone}</td><td>${d.position}</td><td></td></tr>`);
-    }
+    // FINANCE
     async function initFin() {
       const data = await req('/transactions');
       const tb = document.querySelector('#fin-table tbody'); tb.innerHTML = '';
-      data.forEach(d => tb.innerHTML += `<tr><td>${d.created_at.split('T')[0]}</td><td><span class="badge ${d.trans_type==='Thu'?'badge-success':'badge-danger'}">${d.trans_type}</span></td><td>${d.category}</td><td class="font-bold">${fMoney(d.amount)}</td></tr>`);
-    }
-    async function initInv() {
-      const data = await req('/inventory');
-      const tb = document.querySelector('#inv-table tbody'); tb.innerHTML = '';
-      data.forEach(d => tb.innerHTML += `<tr><td>${d.item_name}</td><td class="font-bold">${d.quantity} ${d.unit}</td><td>${d.quantity<15?'<span class="badge badge-danger">Sắp hết</span>':'<span class="badge badge-success">An toàn</span>'}</td></tr>`);
-      const menu = await req('/products');
-      const tb2 = document.querySelector('#menu-table tbody'); tb2.innerHTML = '';
-      menu.forEach(d => tb2.innerHTML += `<tr><td class="font-bold"><i class="fa-solid ${d.image_icon} text-slate-400 mr-2"></i> ${d.name}</td><td class="text-emerald-600 font-bold">${fMoney(d.price)}</td></tr>`);
-    }
-    async function initLeave() {
-      const data = await req('/leave-requests');
-      const tb = document.querySelector('#leave-table tbody'); tb.innerHTML = '';
-      data.forEach(d => {
-        let acts = d.status==='Chờ duyệt'?`<button onclick="req('/leave-requests/${d.id}/status','PUT',{status:'Đã duyệt'}).then(initLeave)" class="badge badge-success">Duyệt</button>`:'';
-        tb.innerHTML += `<tr><td class="font-bold">${d.employee_name}</td><td>${d.request_date.split('T')[0]}</td><td>${d.reason}</td><td><span class="badge badge-warning">${d.status}</span></td><td>${acts}</td></tr>`
-      });
+      if(data.length === 0) tb.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
+      data.forEach(d => tb.innerHTML += `<tr><td>${fDate(d.trans_date)}</td><td><span class="badge ${d.trans_type==='Thu'?'badge-success':'badge-danger'}">${d.trans_type}</span></td><td>${d.category}</td><td class="font-bold ${d.trans_type==='Thu'?'text-emerald-600':'text-rose-600'}">${fMoney(d.amount)}</td><td class="text-slate-500 text-xs">${d.creator}</td></tr>`);
     }
 
-    // Force Init DB
-    async function forceInitDb() {
-      Swal.fire({title:'Reset toàn bộ Hệ thống?',text:'Dữ liệu sẽ được khôi phục về bản Demo hoàn chỉnh!',icon:'warning',showCancelButton:true,confirmButtonText:'Bắt đầu reset!'}).then(async res => {
-        if(res.isConfirmed) { Swal.fire({title:'Đang xử lý...'}); await req('/force-init-db'); Swal.fire('Xong!','Hệ thống đã reset.','success').then(()=>location.reload()); }
-      });
-    }
-
-    window.onload = loadView('dashboard-view');
+    window.onload = () => loadView('dashboard-view');
   </script>
 </body>
 </html>
