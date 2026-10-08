@@ -95,11 +95,17 @@ async function initializeDatabase(forceSeed = false) {
         'Sinh Tố Bơ', 'Sinh Tố Dâu', 'Sinh Tố Xoài', 'Nước Ép Cam', 'Nước Ép Táo', 'Nước Ép Thơm',
         'Bánh Sừng Trâu', 'Tiramisu', 'Bánh Mì Que', 'Cheesecake', 'Macaron', 'Bánh Quy Bơ'
       ];
+      
+      const coffeeImg = 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=300&q=80';
+      const teaImg = 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300&q=80';
+      const smoothieImg = 'https://images.unsplash.com/photo-1628557044797-f21a177c37ec?w=300&q=80';
+      const cakeImg = 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=300&q=80';
+
       for(let i=0; i<30; i++) {
         let cat = (i<10) ? 'Cà phê' : (i<18 ? 'Trà' : (i<24 ? 'Sinh tố & Ép' : 'Bánh ngọt'));
         let price = Math.floor(Math.random()*4 + 2) * 10000;
-        let icon = (cat==='Cà phê')?'fa-mug-hot':(cat==='Trà'?'fa-leaf':'fa-cake-candles');
-        await client.query('INSERT INTO products (name, category, price, image_icon) VALUES ($1, $2, $3, $4)', [menuNames[i], cat, price, icon]);
+        let img = (cat==='Cà phê') ? coffeeImg : (cat==='Trà' ? teaImg : (cat==='Bánh ngọt' ? cakeImg : smoothieImg));
+        await client.query('INSERT INTO products (name, category, price, image_icon) VALUES ($1, $2, $3, $4)', [menuNames[i], cat, price, img]);
       }
 
       // 4. Generate 500 Customers

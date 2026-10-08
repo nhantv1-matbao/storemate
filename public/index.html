@@ -48,12 +48,13 @@
       <div class="flex items-center gap-4">
         <img src="logo.jpg" alt="Logo" class="h-14 w-14 rounded-full border-2 border-emerald-500 shadow-sm object-cover bg-white" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
         <div>
-          <h1 class="text-2xl font-black tracking-tight text-slate-800">STORE MATE</h1>
-          <p class="text-xs font-bold text-emerald-600 tracking-widest">SMART OPERATIONS</p>
+          <h1 class="text-2xl font-black tracking-tight text-slate-800">URBAN BREW</h1>
+          <p class="text-xs font-bold text-emerald-600 tracking-widest">POWERED BY STORE MATE OS</p>
         </div>
       </div>
       <nav class="hidden md:flex gap-8 h-full items-end pb-1">
         <a href="#dashboard" class="nav-item active pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="dashboard-view">Tổng Quan</a>
+        <a href="#attendance" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="attendance-view">Chấm Công</a>
         <a href="#employees" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="employees-view">Nhân Sự</a>
         <a href="#leave" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="leave-view">Nghỉ Phép</a>
         <a href="#inventory" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="inventory-view">Kho & Menu</a>
@@ -111,7 +112,7 @@
             <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><i class="fa-solid fa-users text-amber-400"></i></div>
           </div>
         </div>
-        <div class="dark-glass rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-emerald-900/50 transition border-emerald-500/50">
+        <div onclick="document.querySelector('[data-view=attendance-view]').click()" class="dark-glass rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-emerald-900/50 transition border-emerald-500/50">
           <i class="fa-solid fa-fingerprint text-4xl text-emerald-400 mb-2"></i>
           <h3 class="font-bold text-lg tracking-wide uppercase text-emerald-400">MÁY CHẤM CÔNG</h3>
         </div>
@@ -120,6 +121,35 @@
       <div class="backdrop-blur-custom rounded-2xl p-6 shadow-xl border border-white/50">
         <h3 class="text-lg font-bold text-slate-800 mb-6 uppercase tracking-widest"><i class="fa-solid fa-chart-line text-emerald-600 mr-2"></i> BIỂU ĐỒ DOANH THU (7 NGÀY QUA)</h3>
         <canvas id="revChart" height="80"></canvas>
+      </div>
+    </div>
+
+    <!-- 1.5. ATTENDANCE -->
+    <div id="attendance-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="backdrop-blur-custom rounded-2xl shadow-xl border border-white/50 p-8 flex flex-col items-center justify-center text-center">
+          <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner">
+            <i class="fa-solid fa-fingerprint"></i>
+          </div>
+          <h2 class="text-2xl font-black text-slate-800 mb-6 uppercase tracking-widest">Chấm Công Vào/Ra</h2>
+          <select id="att-emp" class="w-full max-w-sm border-2 border-slate-200 rounded-xl p-4 outline-none text-center font-bold text-slate-700 mb-6 focus:border-emerald-500 bg-white shadow-sm">
+            <option value="">-- Chọn tên bạn --</option>
+          </select>
+          <div class="flex gap-4 w-full max-w-sm">
+            <button onclick="clockIn()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-1"><i class="fa-solid fa-right-to-bracket mr-1"></i> VÀO CA</button>
+            <button onclick="clockOut()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-rose-500/30 transition transform hover:-translate-y-1"><i class="fa-solid fa-right-from-bracket mr-1"></i> RA CA</button>
+          </div>
+        </div>
+        <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+          <div class="bg-white rounded-xl overflow-hidden h-full flex flex-col">
+            <div class="p-5 border-b border-slate-100 bg-slate-50">
+              <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-list-check text-blue-600 mr-2"></i> LƯỢT CHẤM CÔNG HÔM NAY</h2>
+            </div>
+            <div class="overflow-y-auto flex-1 h-96">
+              <table id="att-table"><thead><tr><th>Nhân sự</th><th>Giờ Vào</th><th>Giờ Ra</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -251,6 +281,7 @@
 
     async function loadView(view) {
       if(view==='dashboard-view') await initDash();
+      if(view==='attendance-view') await initAttendance();
       if(view==='employees-view') await initEmp();
       if(view==='leave-view') await initLeave();
       if(view==='inventory-view') await initInv();
@@ -261,7 +292,7 @@
     // DASHBOARD
     async function initDash() {
       const d = await req('/dashboard');
-      if(!d.todayRev && d.todayRev!==0) return; // Fetch failed
+      if(!d.todayRev && d.todayRev!==0) return; 
       document.getElementById('db-rev').innerText = fMoney(d.todayRev);
       document.getElementById('db-ord').innerText = d.todayOrders;
       document.getElementById('db-emp').innerText = d.empCount;
@@ -280,6 +311,40 @@
         },
         options: { plugins: { legend: {display:false} }, scales: { y: { beginAtZero: true } } }
       });
+    }
+
+    // ATTENDANCE
+    async function initAttendance() {
+      const emps = await req('/employees');
+      const sel = document.getElementById('att-emp');
+      sel.innerHTML = '<option value="">-- Chọn tên bạn --</option>';
+      emps.forEach(e => {
+        if(e.status === 'Hoạt động') sel.innerHTML += `<option value="${e.id}">[ID:${e.id}] ${e.name}</option>`;
+      });
+
+      const atts = await req('/attendances');
+      const tb = document.querySelector('#att-table tbody'); tb.innerHTML = '';
+      if(atts.length === 0) tb.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400">Chưa có ai chấm công hôm nay</td></tr>`;
+      atts.forEach(a => {
+        tb.innerHTML += `<tr><td class="font-bold text-slate-700">${a.emp_name}</td><td><span class="badge badge-success">${a.check_in||'--'}</span></td><td><span class="badge badge-warning">${a.check_out||'--'}</span></td></tr>`;
+      });
+    }
+
+    async function clockIn() {
+      const id = document.getElementById('att-emp').value;
+      if(!id) return Swal.fire({icon: 'warning', title: 'Lỗi', text: 'Vui lòng chọn tên!'});
+      Swal.fire({title: 'Đang xử lý...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
+      await req('/attendance/check', 'POST', {emp_id: id, type:'in'});
+      Swal.fire({icon: 'success', title: 'Vào ca thành công', timer: 1500});
+      initAttendance();
+    }
+    async function clockOut() {
+      const id = document.getElementById('att-emp').value;
+      if(!id) return Swal.fire({icon: 'warning', title: 'Lỗi', text: 'Vui lòng chọn tên!'});
+      Swal.fire({title: 'Đang xử lý...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
+      await req('/attendance/check', 'POST', {emp_id: id, type:'out'});
+      Swal.fire({icon: 'success', title: 'Ra ca thành công', timer: 1500});
+      initAttendance();
     }
 
     // EMPLOYEES
@@ -309,7 +374,7 @@
       data.forEach(d => tb.innerHTML += `<tr><td class="font-bold">${d.item_name}</td><td class="text-blue-600 font-bold">${d.quantity} ${d.unit}</td><td>${d.quantity<15?'<span class="badge badge-danger">Sắp hết</span>':'<span class="badge badge-success">An toàn</span>'}</td></tr>`);
       const menu = await req('/products');
       const tb2 = document.querySelector('#menu-table tbody'); tb2.innerHTML = '';
-      menu.forEach(d => tb2.innerHTML += `<tr><td class="font-bold"><i class="fa-solid ${d.image_icon} text-emerald-500 mr-2"></i> ${d.name}</td><td class="text-slate-500 text-xs">${d.category}</td><td class="text-emerald-600 font-bold">${fMoney(d.price)}</td></tr>`);
+      menu.forEach(d => tb2.innerHTML += `<tr><td class="font-bold flex items-center gap-3"><img src="${d.image_icon}" class="w-10 h-10 object-cover rounded-lg border border-slate-200"> ${d.name}</td><td class="text-slate-500 text-xs">${d.category}</td><td class="text-emerald-600 font-bold">${fMoney(d.price)}</td></tr>`);
     }
 
     // CRM

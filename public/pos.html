@@ -96,11 +96,9 @@
         grid.innerHTML = '';
         prods.forEach(p => {
           grid.innerHTML += `
-            <div onclick="addToCart(${p.id}, '${p.name}', ${p.price})" class="pos-item bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col items-center text-center hover:bg-slate-700 hover:border-emerald-500 group">
-              <div class="w-20 h-20 rounded-full bg-slate-900 text-slate-500 group-hover:text-emerald-400 group-hover:bg-slate-800 flex items-center justify-center text-3xl mb-4 transition shadow-inner">
-                <i class="fa-solid ${p.image_icon}"></i>
-              </div>
-              <h4 class="font-bold text-white text-sm mb-2 line-clamp-2">${p.name}</h4>
+            <div onclick="addToCart(${p.id}, '${p.name}', ${p.price})" class="pos-item bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col items-center text-center hover:bg-slate-700 hover:border-emerald-500 group">
+              <img src="${p.image_icon}" alt="${p.name}" class="w-full h-28 object-cover rounded-xl mb-3 shadow-md group-hover:opacity-80 transition" onerror="this.src='https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=300&q=80'">
+              <h4 class="font-bold text-white text-sm mb-1 line-clamp-2">${p.name}</h4>
               <p class="text-emerald-400 font-black tracking-wider">${fMoney(p.price)}</p>
             </div>
           `;
