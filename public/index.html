@@ -203,8 +203,13 @@
         <div class="bg-white rounded-xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-rose-50">
             <h2 class="text-xl font-bold text-rose-800"><i class="fa-solid fa-wallet text-rose-600 mr-2"></i> SỔ TÀI CHÍNH (GIAO DỊCH)</h2>
+            <select id="finFilter" onchange="initFin()" class="border border-rose-200 rounded px-3 py-1 bg-white text-rose-800 outline-none font-bold text-sm">
+              <option value="all">Tất cả thời gian</option>
+              <option value="today">Hôm nay</option>
+              <option value="month">Tháng này</option>
+            </select>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto h-96">
             <table id="fin-table"><thead><tr><th>Thời gian</th><th>Loại</th><th>Hạng mục</th><th>Số tiền</th><th>Người tạo</th></tr></thead><tbody></tbody></table>
           </div>
         </div>
@@ -320,7 +325,8 @@
 
     // FINANCE
     async function initFin() {
-      const data = await req('/transactions');
+      const filter = document.getElementById('finFilter') ? document.getElementById('finFilter').value : 'all';
+      const data = await req('/transactions?filter=' + filter);
       const tb = document.querySelector('#fin-table tbody'); tb.innerHTML = '';
       if(data.length === 0) tb.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
       data.forEach(d => tb.innerHTML += `<tr><td>${fDate(d.trans_date)}</td><td><span class="badge ${d.trans_type==='Thu'?'badge-success':'badge-danger'}">${d.trans_type}</span></td><td>${d.category}</td><td class="font-bold ${d.trans_type==='Thu'?'text-emerald-600':'text-rose-600'}">${fMoney(d.amount)}</td><td class="text-slate-500 text-xs">${d.creator}</td></tr>`);

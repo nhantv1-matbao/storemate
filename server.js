@@ -16,10 +16,9 @@ const pool = new Pool({
 // ==========================================
 // 1. DATABASE INITIALIZATION & MOCK DATA
 // ==========================================
-async function initializeDatabase() {
+async function initializeDatabase(forceSeed = false) {
   const client = await pool.connect();
   try {
-    // 1. Tạo các bảng nếu chưa có
     await client.query(`
       CREATE TABLE IF NOT EXISTS employees (
         id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, branch VARCHAR(100), shift VARCHAR(50),
@@ -58,58 +57,86 @@ async function initializeDatabase() {
       );
     `);
 
-    // 2. Kiểm tra và nạp dữ liệu mồi TỰ ĐỘNG nếu trống
     const { rows: empRows } = await client.query('SELECT COUNT(*) FROM employees');
-    if (parseInt(empRows[0].count) === 0) {
-      console.log('Bắt đầu nạp dữ liệu mồi tự động...');
-      
+    if (parseInt(empRows[0].count) < 100 || forceSeed) {
+      console.log('Bắt đầu nạp siêu dữ liệu Vibehost (100 NV, 30 Menu, 100+ Kho, 500 KH, 30 ngày Finance)...');
+      await client.query('TRUNCATE employees, shifts, leave_requests, checklists, inventory, transactions, daily_orders, products, customers, attendances RESTART IDENTITY CASCADE');
+
       const branches = ['StoreMate Central - Q1', 'StoreMate Hub - Gò Vấp', 'StoreMate Express - Q7', 'Kho Tổng'];
-      
-      // Employees
-      const mockEmps = [
-        ['Trần Lê Hoàng Anh', branches[0], 'Ca Sáng', '0901234567', 'Cửa hàng trưởng', '1995-05-12'],
-        ['Nguyễn Phương Thảo', branches[0], 'Ca Chiều', '0912345678', 'Barista', '1998-08-22'],
-        ['Lê Minh Quân', branches[0], 'Ca Sáng', '0923456789', 'Phục vụ', '2001-01-15'],
-        ['Phạm Thu Trang', branches[1], 'Full-time', '0934567890', 'Cửa hàng trưởng', '1993-11-05'],
-        ['Vũ Đức Hải', branches[1], 'Ca Chiều', '0945678901', 'Barista', '1999-04-10']
+      const ho = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Đinh', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý'];
+      const dem = ['Thị', 'Văn', 'Ngọc', 'Hữu', 'Minh', 'Thanh', 'Thu', 'Bá', 'Quốc', 'Tuấn', 'Hải', 'Thùy', 'Mai', 'Xuân'];
+      const ten = ['Anh', 'Bình', 'Châu', 'Dương', 'Giang', 'Hùng', 'Khánh', 'Linh', 'Nhung', 'Phát', 'Quang', 'Sơn', 'Tâm', 'Vy', 'Trang', 'Phương', 'Bảo', 'Long'];
+
+      // 1. Generate 100 Employees
+      for(let i=1; i<=100; i++) {
+        let name = ho[i%ho.length] + ' ' + dem[i%dem.length] + ' ' + ten[i%ten.length];
+        let branch = branches[i%branches.length];
+        let shift = (i%3===0) ? 'Ca Sáng' : ((i%2===0) ? 'Ca Chiều' : 'Full-time');
+        let phone = '09' + Math.floor(10000000 + Math.random()*90000000);
+        let pos = (i%15===0) ? 'Quản lý' : (i%5===0 ? 'Barista Chính' : 'Phục vụ');
+        let bday = `199${i%10}-0${(i%9)+1}-1${i%9}`;
+        await client.query('INSERT INTO employees (name, branch, shift, phone, position, birthday) VALUES ($1, $2, $3, $4, $5, $6)', [name, branch, shift, phone, pos, bday]);
+      }
+
+      // 2. Generate 100+ Inventory Items
+      const invPrefix = ['Cà phê', 'Trà', 'Siro', 'Sữa', 'Ly', 'Ống hút', 'Túi', 'Bánh', 'Đường', 'Trái cây'];
+      for(let i=1; i<=110; i++) {
+        let item = invPrefix[i%invPrefix.length] + ' Loại ' + i;
+        let cat = (i%4===0) ? 'Bao bì' : 'Nguyên liệu';
+        let branch = branches[i%branches.length];
+        let qty = Math.floor(Math.random()*500);
+        await client.query('INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ($1, $2, $3, $4, $5)', [item, cat, qty, 'Đơn vị', branch]);
+      }
+
+      // 3. Generate 30 Menu Items
+      const menuNames = [
+        'Cà Phê Đen Đá', 'Cà Phê Sữa Đá', 'Bạc Xỉu', 'Espresso', 'Americano', 'Cappuccino', 'Latte', 'Mocha', 'Caramel Macchiato', 'Cold Brew',
+        'Trà Đào Cam Sả', 'Trà Vải Nhiệt Đới', 'Trà Sen Vàng', 'Trà Ô Long Macchiato', 'Trà Đen Khứu Giác', 'Trà Sữa Trân Châu', 'Trà Sữa Matcha', 'Trà Sữa Khoai Môn',
+        'Sinh Tố Bơ', 'Sinh Tố Dâu', 'Sinh Tố Xoài', 'Nước Ép Cam', 'Nước Ép Táo', 'Nước Ép Thơm',
+        'Bánh Sừng Trâu', 'Tiramisu', 'Bánh Mì Que', 'Cheesecake', 'Macaron', 'Bánh Quy Bơ'
       ];
-      for (let e of mockEmps) await client.query('INSERT INTO employees (name, branch, shift, phone, position, birthday) VALUES ($1, $2, $3, $4, $5, $6)', e);
+      for(let i=0; i<30; i++) {
+        let cat = (i<10) ? 'Cà phê' : (i<18 ? 'Trà' : (i<24 ? 'Sinh tố & Ép' : 'Bánh ngọt'));
+        let price = Math.floor(Math.random()*4 + 2) * 10000;
+        let icon = (cat==='Cà phê')?'fa-mug-hot':(cat==='Trà'?'fa-leaf':'fa-cake-candles');
+        await client.query('INSERT INTO products (name, category, price, image_icon) VALUES ($1, $2, $3, $4)', [menuNames[i], cat, price, icon]);
+      }
 
-      // Inventory
-      await client.query("INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ('Cà phê hạt nguyên chất', 'Nguyên liệu', 45, 'kg', 'StoreMate Central - Q1')");
-      await client.query("INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ('Sữa tươi', 'Nguyên liệu', 5, 'thùng', 'StoreMate Central - Q1')");
-      await client.query("INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ('Trà Olong', 'Nguyên liệu', 12, 'kg', 'StoreMate Hub - Gò Vấp')");
-      await client.query("INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ('Ly nhựa 500ml', 'Bao bì', 2000, 'cái', 'StoreMate Central - Q1')");
-      
-      // Products (Menu)
-      const menu = [
-        ['Cà Phê Đen Đá', 'Cà phê', 25000, 'fa-mug-hot'],
-        ['Bạc Xỉu', 'Cà phê', 35000, 'fa-glass-water'],
-        ['Trà Đào Cam Sả', 'Trà trái cây', 45000, 'fa-leaf'],
-        ['Trà Vải Nhiệt Đới', 'Trà trái cây', 45000, 'fa-leaf'],
-        ['Matcha Latte', 'Đồ uống đá xay', 55000, 'fa-mug-saucer'],
-        ['Bánh Sừng Trâu', 'Bánh ngọt', 30000, 'fa-bread-slice'],
-        ['Tiramisu', 'Bánh ngọt', 40000, 'fa-cake-candles'],
-        ['Trà Sữa Trân Châu', 'Trà sữa', 40000, 'fa-cup-togo']
-      ];
-      for(let p of menu) await client.query('INSERT INTO products (name, category, price, image_icon) VALUES ($1, $2, $3, $4)', p);
+      // 4. Generate 500 Customers
+      for(let i=1; i<=500; i++) {
+        let name = ho[Math.floor(Math.random()*ho.length)] + ' ' + ten[Math.floor(Math.random()*ten.length)];
+        let phone = '09' + Math.floor(10000000 + Math.random()*90000000);
+        let pts = Math.floor(Math.random()*200);
+        try { await client.query('INSERT INTO customers (name, phone, points) VALUES ($1, $2, $3)', [name, phone, pts]); } catch(e){} // ignore unique phone collisions
+      }
 
-      // Customers
-      await client.query("INSERT INTO customers (name, phone, points) VALUES ('Chị Mai', '0909999888', 150)");
-      await client.query("INSERT INTO customers (name, phone, points) VALUES ('Anh Hùng', '0911222333', 45)");
-
-      // Transactions & Orders
-      for(let i=6; i>=0; i--) {
+      // 5. Generate 30 Days of Finance & Orders
+      const transCategories = ['Doanh thu POS - Tiền mặt', 'Doanh thu POS - Chuyển khoản', 'Doanh thu GrabFood', 'Doanh thu ShopeeFood', 'Thanh toán VNPay'];
+      for(let i=30; i>=0; i--) {
         let dateStr = `CURRENT_DATE - INTERVAL '${i} day'`;
-        let rev = Math.floor(Math.random()*5000000) + 2000000;
-        let ords = Math.floor(Math.random()*50) + 20;
-        await client.query(`INSERT INTO daily_orders (order_date, total_orders, revenue) VALUES (${dateStr}, ${ords}, ${rev})`);
-        if(i===0) await client.query(`INSERT INTO transactions (trans_type, amount, category, creator, trans_date) VALUES ('Thu', ${rev}, 'Doanh thu trong ngày', 'Hệ thống', CURRENT_DATE)`);
+        
+        // Randomly generate 3-5 income sources per day
+        let dailyRev = 0;
+        let dailyOrds = Math.floor(Math.random()*150) + 50;
+        
+        let incomes = Math.floor(Math.random()*3) + 3; // 3 to 5 transactions per day
+        for(let j=0; j<incomes; j++) {
+           let amount = Math.floor(Math.random()*3000000) + 1000000;
+           dailyRev += amount;
+           let cat = transCategories[Math.floor(Math.random()*transCategories.length)];
+           await client.query(`INSERT INTO transactions (trans_type, amount, category, creator, trans_date) VALUES ('Thu', ${amount}, '${cat}', 'Hệ thống', ${dateStr})`);
+        }
+        
+        // Sometimes insert an expense
+        if(Math.random() > 0.5) {
+          let exp = Math.floor(Math.random()*1000000) + 500000;
+          await client.query(`INSERT INTO transactions (trans_type, amount, category, creator, trans_date) VALUES ('Chi', ${exp}, 'Nhập hàng nhà cung cấp', 'Quản lý', ${dateStr})`);
+        }
+
+        await client.query(`INSERT INTO daily_orders (order_date, total_orders, revenue) VALUES (${dateStr}, ${dailyOrds}, ${dailyRev})`);
       }
       
-      // Leave Requests
-      await client.query(`INSERT INTO leave_requests (employee_id, request_date, reason, shift_time, status) VALUES (2, CURRENT_DATE + INTERVAL '2 day', 'Khám sức khỏe định kỳ', 'Ca Sáng', 'Chờ duyệt')`);
-      await client.query(`INSERT INTO leave_requests (employee_id, request_date, reason, shift_time, status) VALUES (5, CURRENT_DATE + INTERVAL '5 day', 'Xin nghỉ về quê', 'Full-time', 'Chờ duyệt')`);
+      console.log('Đã nạp xong Siêu Dữ Liệu!');
     }
   } catch (err) {
     console.error('Lỗi Database (Initialize):', err);
@@ -131,19 +158,14 @@ const handleQuery = async (res, queryStr, params = []) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// --- Products & POS ---
 app.get('/api/products', (req, res) => handleQuery(res, 'SELECT * FROM products ORDER BY category, id'));
 app.post('/api/checkout', async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { total, phone, payment_method } = req.body;
-    
-    // Ghi giao dịch
     await client.query("INSERT INTO transactions (trans_type, amount, category, creator) VALUES ('Thu', $1, $2, 'Thu ngân POS')", [total, `Doanh thu POS - ${payment_method}`]);
-    // Cập nhật daily orders
     await client.query("INSERT INTO daily_orders (order_date, total_orders, revenue) VALUES (CURRENT_DATE, 1, $1) ON CONFLICT (order_date) DO UPDATE SET total_orders = daily_orders.total_orders + 1, revenue = daily_orders.revenue + $1", [total]);
-    // Tích điểm
     if (phone) {
       const pts = Math.floor(total / 10000);
       await client.query("UPDATE customers SET points = points + $1 WHERE phone = $2", [pts, phone]);
@@ -158,8 +180,7 @@ app.post('/api/checkout', async (req, res) => {
   }
 });
 
-// --- CRM & Attendance ---
-app.get('/api/customers', (req, res) => handleQuery(res, 'SELECT * FROM customers ORDER BY points DESC'));
+app.get('/api/customers', (req, res) => handleQuery(res, 'SELECT * FROM customers ORDER BY points DESC LIMIT 100'));
 app.get('/api/attendances', (req, res) => handleQuery(res, 'SELECT a.*, e.name as emp_name FROM attendances a JOIN employees e ON a.employee_id = e.id WHERE a.work_date = CURRENT_DATE ORDER BY a.check_in DESC'));
 app.post('/api/attendance/check', async (req, res) => {
   try {
@@ -173,7 +194,6 @@ app.post('/api/attendance/check', async (req, res) => {
   } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- Dashboard & Core ---
 app.get('/api/dashboard', async (req, res) => {
   try {
     const rev = await pool.query("SELECT SUM(amount) as t FROM transactions WHERE trans_type = 'Thu' AND trans_date = CURRENT_DATE");
@@ -190,18 +210,31 @@ app.get('/api/dashboard', async (req, res) => {
   } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/employees', (req, res) => handleQuery(res, 'SELECT * FROM employees ORDER BY id DESC'));
+app.get('/api/employees', (req, res) => handleQuery(res, 'SELECT * FROM employees ORDER BY id DESC LIMIT 50')); // Load 50 for UI speed
 app.post('/api/employees', (req, res) => handleQuery(res, 'INSERT INTO employees (name, branch, shift, phone, position, birthday) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [req.body.name, req.body.branch, req.body.shift, req.body.phone, req.body.position, req.body.birthday]));
 
-app.get('/api/inventory', (req, res) => handleQuery(res, 'SELECT * FROM inventory ORDER BY item_name ASC'));
-app.get('/api/transactions', (req, res) => handleQuery(res, 'SELECT * FROM transactions ORDER BY created_at DESC'));
+app.get('/api/inventory', (req, res) => handleQuery(res, 'SELECT * FROM inventory ORDER BY item_name ASC LIMIT 50'));
+app.get('/api/transactions', async (req, res) => {
+  const filter = req.query.filter || 'all'; // Support basic filter
+  let query = 'SELECT * FROM transactions ORDER BY trans_date DESC, id DESC LIMIT 100';
+  if(filter === 'today') query = "SELECT * FROM transactions WHERE trans_date = CURRENT_DATE ORDER BY id DESC";
+  else if(filter === 'month') query = "SELECT * FROM transactions WHERE trans_date >= date_trunc('month', CURRENT_DATE) ORDER BY trans_date DESC";
+  handleQuery(res, query);
+});
 
 app.get('/api/leave-requests', (req, res) => handleQuery(res, 'SELECT l.*, e.name as employee_name FROM leave_requests l JOIN employees e ON l.employee_id = e.id ORDER BY l.request_date DESC'));
 app.put('/api/leave-requests/:id/status', (req, res) => handleQuery(res, 'UPDATE leave_requests SET status = $1 WHERE id = $2', [req.body.status, req.params.id]));
 
 app.get('/api/shifts', (req, res) => handleQuery(res, 'SELECT * FROM shifts ORDER BY work_date DESC'));
 
-// --- Frontend Routes ---
+// Lệnh bắt buộc reset toàn bộ data từ Frontend (nếu cần)
+app.get('/api/force-init-db', async (req, res) => {
+  try {
+    await initializeDatabase(true);
+    res.json({ success: true });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/pos', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pos.html')));
 app.get('/onboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'onboard.html')));
 app.get('/leave-request', (req, res) => res.sendFile(path.join(__dirname, 'public', 'leave.html')));
