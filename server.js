@@ -165,6 +165,9 @@ const handleQuery = async (res, queryStr, params = []) => {
 };
 
 app.get('/api/products', (req, res) => handleQuery(res, 'SELECT * FROM products ORDER BY category, id'));
+app.post('/api/products', (req, res) => handleQuery(res, 'INSERT INTO products (name, category, price, image_icon) VALUES ($1, $2, $3, $4) RETURNING *', [req.body.name, req.body.cat, req.body.price, req.body.img || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=300&q=80']));
+app.delete('/api/products/:id', (req, res) => handleQuery(res, 'DELETE FROM products WHERE id = $1', [req.params.id]));
+
 app.post('/api/checkout', async (req, res) => {
   const client = await pool.connect();
   try {
@@ -216,15 +219,32 @@ app.get('/api/dashboard', async (req, res) => {
   } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/employees', (req, res) => handleQuery(res, 'SELECT * FROM employees ORDER BY id DESC LIMIT 50')); // Load 50 for UI speed
+app.get('/api/employees', (req, res) => {
+  const branch = req.query.branch;
+  if(branch && branch !== 'all') return handleQuery(res, 'SELECT * FROM employees WHERE branch = $1 ORDER BY id DESC', [branch]);
+  handleQuery(res, 'SELECT * FROM employees ORDER BY id DESC LIMIT 50');
+});
 app.post('/api/employees', (req, res) => handleQuery(res, 'INSERT INTO employees (name, branch, shift, phone, position, birthday) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [req.body.name, req.body.branch, req.body.shift, req.body.phone, req.body.position, req.body.birthday]));
 
-app.get('/api/inventory', (req, res) => handleQuery(res, 'SELECT * FROM inventory ORDER BY item_name ASC LIMIT 50'));
+app.get('/api/inventory', (req, res) => {
+  const branch = req.query.branch;
+  if(branch && branch !== 'all') return handleQuery(res, 'SELECT * FROM inventory WHERE branch = $1 ORDER BY item_name ASC', [branch]);
+  handleQuery(res, 'SELECT * FROM inventory ORDER BY item_name ASC LIMIT 50');
+});
+app.post('/api/inventory', (req, res) => handleQuery(res, 'INSERT INTO inventory (item_name, category, quantity, unit, branch) VALUES ($1, $2, $3, $4, $5) RETURNING *', [req.body.name, req.body.cat, req.body.qty, req.body.unit, req.body.branch]));
+app.delete('/api/inventory/:id', (req, res) => handleQuery(res, 'DELETE FROM inventory WHERE id = $1', [req.params.id]));
+
 app.get('/api/transactions', async (req, res) => {
-  const filter = req.query.filter || 'all'; // Support basic filter
+  const filter = req.query.filter || 'all'; 
   let query = 'SELECT * FROM transactions ORDER BY trans_date DESC, id DESC LIMIT 100';
-  if(filter === 'today') query = "SELECT * FROM transactions WHERE trans_date = CURRENT_DATE ORDER BY id DESC";
-  else if(filter === 'month') query = "SELECT * FROM transactions WHERE trans_date >= date_trunc('month', CURRENT_DATE) ORDER BY trans_date DESC";
+  if(filter && filter !== 'all') {
+    const [year, month] = filter.split('-');
+    if(year && month) {
+      query = `SELECT * FROM transactions WHERE EXTRACT(YEAR FROM trans_date) = ${year} AND EXTRACT(MONTH FROM trans_date) = ${month} ORDER BY trans_date DESC`;
+    } else if(filter === 'today') {
+      query = "SELECT * FROM transactions WHERE trans_date = CURRENT_DATE ORDER BY id DESC";
+    }
+  }
   handleQuery(res, query);
 });
 

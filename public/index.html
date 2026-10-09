@@ -56,7 +56,7 @@
         <a href="#dashboard" class="nav-item active pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="dashboard-view">Tổng Quan</a>
         <a href="#attendance" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="attendance-view">Chấm Công</a>
         <a href="#employees" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="employees-view">Nhân Sự</a>
-        <a href="#leave" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="leave-view">Nghỉ Phép</a>
+        <a href="#leave" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="leave-view">Lịch & Phép</a>
         <a href="#inventory" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="inventory-view">Kho & Menu</a>
         <a href="#crm" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="crm-view">Khách Hàng</a>
         <a href="#finance" class="nav-item pb-4 text-sm font-semibold text-slate-600 uppercase tracking-wide cursor-pointer" data-view="finance-view">Tài Chính</a>
@@ -159,8 +159,15 @@
         <div class="bg-white rounded-xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h2 class="text-xl font-bold text-slate-800"><i class="fa-solid fa-users text-emerald-600 mr-2"></i> DANH SÁCH NHÂN SỰ</h2>
+            <select id="empBranchFilter" onchange="initEmp()" class="border border-slate-200 rounded px-3 py-1 bg-white text-slate-800 outline-none font-bold text-sm">
+              <option value="all">Tất cả chi nhánh</option>
+              <option value="StoreMate Central - Q1">StoreMate Central - Q1</option>
+              <option value="StoreMate Hub - Gò Vấp">StoreMate Hub - Gò Vấp</option>
+              <option value="StoreMate Express - Q7">StoreMate Express - Q7</option>
+              <option value="Kho Tổng">Kho Tổng</option>
+            </select>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto h-96">
             <table id="emp-table">
               <thead><tr><th>Họ và Tên</th><th>Chi Nhánh</th><th>Ca Mặc Định</th><th>SĐT</th><th>Chức Vụ</th><th>Trạng Thái</th></tr></thead>
               <tbody></tbody>
@@ -170,18 +177,40 @@
       </div>
     </div>
 
-    <!-- 3. LEAVE -->
+    <!-- 3. LEAVE & SCHEDULE -->
     <div id="leave-view" class="view-section hide space-y-6 max-w-7xl mx-auto">
-      <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
-        <div class="bg-white rounded-xl overflow-hidden">
-          <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-amber-50">
-            <h2 class="text-xl font-bold text-amber-800"><i class="fa-solid fa-bed text-amber-600 mr-2"></i> QUẢN LÝ NGHỈ PHÉP</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+          <div class="bg-white rounded-xl overflow-hidden h-full">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-50">
+              <h2 class="text-xl font-bold text-blue-800"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i> LỊCH & CA LÀM VIỆC</h2>
+            </div>
+            <div class="overflow-x-auto p-4">
+              <table class="w-full text-left">
+                <thead><tr><th class="bg-blue-100 text-blue-800 rounded-tl-lg">Ca Làm Việc</th><th class="bg-blue-100 text-blue-800">Giờ Bắt Đầu</th><th class="bg-blue-100 text-blue-800 rounded-tr-lg">Giờ Kết Thúc</th></tr></thead>
+                <tbody>
+                  <tr><td class="font-bold text-slate-700">Ca Sáng</td><td class="text-emerald-600 font-bold">07:00</td><td class="text-rose-500 font-bold">15:00</td></tr>
+                  <tr><td class="font-bold text-slate-700">Ca Chiều</td><td class="text-emerald-600 font-bold">15:00</td><td class="text-rose-500 font-bold">23:00</td></tr>
+                  <tr><td class="font-bold text-slate-700">Ca Hành Chính</td><td class="text-emerald-600 font-bold">08:00</td><td class="text-rose-500 font-bold">17:00</td></tr>
+                  <tr><td class="font-bold text-slate-700">Full-time</td><td class="text-emerald-600 font-bold">07:00</td><td class="text-rose-500 font-bold">23:00</td></tr>
+                </tbody>
+              </table>
+              <p class="text-xs text-slate-500 mt-4 italic">* Các ca làm việc trên được áp dụng đồng bộ cho tất cả chi nhánh: StoreMate Central - Q1, StoreMate Hub - Gò Vấp, StoreMate Express - Q7.</p>
+            </div>
           </div>
-          <div class="overflow-x-auto">
-            <table id="leave-table">
-              <thead><tr><th>Nhân viên</th><th>Ngày xin nghỉ</th><th>Ca nghỉ</th><th>Lý do</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-              <tbody></tbody>
-            </table>
+        </div>
+
+        <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
+          <div class="bg-white rounded-xl overflow-hidden h-full">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-amber-50">
+              <h2 class="text-xl font-bold text-amber-800"><i class="fa-solid fa-bed text-amber-600 mr-2"></i> DUYỆT NGHỈ PHÉP</h2>
+            </div>
+            <div class="overflow-x-auto h-80">
+              <table id="leave-table">
+                <thead><tr><th>Nhân viên</th><th>Ngày xin nghỉ</th><th>Lý do</th><th>Trạng thái</th><th>Duyệt</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -192,21 +221,32 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
           <div class="bg-white rounded-xl overflow-hidden h-full">
-            <div class="p-5 border-b border-slate-100 bg-slate-50">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-boxes-stacked text-blue-600 mr-2"></i> KHO NGUYÊN LIỆU</h2>
+              <div class="flex gap-2">
+                <select id="invBranchFilter" onchange="initInv()" class="border border-slate-200 rounded px-2 py-1 bg-white text-slate-800 outline-none font-bold text-xs">
+                  <option value="all">Tất cả</option>
+                  <option value="StoreMate Central - Q1">StoreMate Central - Q1</option>
+                  <option value="StoreMate Hub - Gò Vấp">StoreMate Hub - Gò Vấp</option>
+                  <option value="StoreMate Express - Q7">StoreMate Express - Q7</option>
+                  <option value="Kho Tổng">Kho Tổng</option>
+                </select>
+                <button onclick="addInventory()" class="bg-blue-600 text-white px-3 py-1 rounded font-bold text-xs hover:bg-blue-700 transition"><i class="fa-solid fa-plus"></i></button>
+              </div>
             </div>
-            <div class="overflow-x-auto">
-              <table id="inv-table"><thead><tr><th>Tên mặt hàng</th><th>Tồn kho</th><th>Cảnh báo</th></tr></thead><tbody></tbody></table>
+            <div class="overflow-x-auto h-96">
+              <table id="inv-table"><thead><tr><th>Tên mặt hàng</th><th>Tồn kho</th><th>Cảnh báo</th><th>Xóa</th></tr></thead><tbody></tbody></table>
             </div>
           </div>
         </div>
         <div class="backdrop-blur-custom rounded-2xl shadow-xl overflow-hidden border border-white/50 p-1">
           <div class="bg-white rounded-xl overflow-hidden h-full">
-            <div class="p-5 border-b border-slate-100 bg-emerald-50">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-emerald-50">
               <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-mug-hot text-emerald-600 mr-2"></i> MENU SẢN PHẨM (POS)</h2>
+              <button onclick="addProduct()" class="bg-emerald-600 text-white px-3 py-1 rounded font-bold text-xs hover:bg-emerald-700 transition"><i class="fa-solid fa-plus"></i> Thêm món</button>
             </div>
-            <div class="overflow-x-auto">
-              <table id="menu-table"><thead><tr><th>Món</th><th>Phân loại</th><th>Giá bán</th></tr></thead><tbody></tbody></table>
+            <div class="overflow-x-auto h-96">
+              <table id="menu-table"><thead><tr><th>Món</th><th>Phân loại</th><th>Giá bán</th><th>Xóa</th></tr></thead><tbody></tbody></table>
             </div>
           </div>
         </div>
@@ -233,11 +273,10 @@
         <div class="bg-white rounded-xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-rose-50">
             <h2 class="text-xl font-bold text-rose-800"><i class="fa-solid fa-wallet text-rose-600 mr-2"></i> SỔ TÀI CHÍNH (GIAO DỊCH)</h2>
-            <select id="finFilter" onchange="initFin()" class="border border-rose-200 rounded px-3 py-1 bg-white text-rose-800 outline-none font-bold text-sm">
-              <option value="all">Tất cả thời gian</option>
-              <option value="today">Hôm nay</option>
-              <option value="month">Tháng này</option>
-            </select>
+            <div class="flex gap-2 items-center">
+              <label class="text-xs font-bold text-slate-500 uppercase">Xem theo tháng:</label>
+              <input type="month" id="finFilter" onchange="initFin()" class="border border-rose-200 rounded px-3 py-1 bg-white text-rose-800 outline-none font-bold text-sm">
+            </div>
           </div>
           <div class="overflow-x-auto h-96">
             <table id="fin-table"><thead><tr><th>Thời gian</th><th>Loại</th><th>Hạng mục</th><th>Số tiền</th><th>Người tạo</th></tr></thead><tbody></tbody></table>
@@ -349,7 +388,8 @@
 
     // EMPLOYEES
     async function initEmp() {
-      const data = await req('/employees');
+      const branch = document.getElementById('empBranchFilter') ? document.getElementById('empBranchFilter').value : 'all';
+      const data = await req('/employees?branch=' + branch);
       const tb = document.querySelector('#emp-table tbody'); tb.innerHTML = '';
       if(data.length === 0) tb.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
       data.forEach(d => tb.innerHTML += `<tr><td class="font-bold text-slate-700">${d.name}</td><td>${d.branch}</td><td>${d.shift}</td><td>${d.phone}</td><td class="font-medium">${d.position}</td><td><span class="badge badge-success">${d.status}</span></td></tr>`);
@@ -359,22 +399,70 @@
     async function initLeave() {
       const data = await req('/leave-requests');
       const tb = document.querySelector('#leave-table tbody'); tb.innerHTML = '';
-      if(data.length === 0) tb.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
+      if(data.length === 0) tb.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400">Không có dữ liệu</td></tr>`;
       data.forEach(d => {
         let acts = d.status==='Chờ duyệt'?`<button onclick="req('/leave-requests/${d.id}/status','PUT',{status:'Đã duyệt'}).then(initLeave)" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded font-bold text-xs transition">DUYỆT</button>`:'';
         let badge = d.status==='Chờ duyệt'?'badge-warning':(d.status==='Đã duyệt'?'badge-success':'badge-danger');
-        tb.innerHTML += `<tr><td class="font-bold">${d.employee_name}</td><td>${fDate(d.request_date)}</td><td>${d.shift_time}</td><td>${d.reason}</td><td><span class="badge ${badge}">${d.status}</span></td><td>${acts}</td></tr>`
+        tb.innerHTML += `<tr><td class="font-bold">${d.employee_name}</td><td>${fDate(d.request_date)}</td><td>${d.reason}</td><td><span class="badge ${badge}">${d.status}</span></td><td>${acts}</td></tr>`
       });
     }
 
     // INVENTORY & MENU
     async function initInv() {
-      const data = await req('/inventory');
+      const branch = document.getElementById('invBranchFilter') ? document.getElementById('invBranchFilter').value : 'all';
+      const data = await req('/inventory?branch=' + branch);
       const tb = document.querySelector('#inv-table tbody'); tb.innerHTML = '';
-      data.forEach(d => tb.innerHTML += `<tr><td class="font-bold">${d.item_name}</td><td class="text-blue-600 font-bold">${d.quantity} ${d.unit}</td><td>${d.quantity<15?'<span class="badge badge-danger">Sắp hết</span>':'<span class="badge badge-success">An toàn</span>'}</td></tr>`);
+      data.forEach(d => tb.innerHTML += `<tr><td class="font-bold">${d.item_name}</td><td class="text-blue-600 font-bold">${d.quantity} ${d.unit}</td><td>${d.quantity<15?'<span class="badge badge-danger">Sắp hết</span>':'<span class="badge badge-success">An toàn</span>'}</td><td><button onclick="deleteInventory(${d.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button></td></tr>`);
       const menu = await req('/products');
       const tb2 = document.querySelector('#menu-table tbody'); tb2.innerHTML = '';
-      menu.forEach(d => tb2.innerHTML += `<tr><td class="font-bold flex items-center gap-3"><img src="${d.image_icon}" class="w-10 h-10 object-cover rounded-lg border border-slate-200"> ${d.name}</td><td class="text-slate-500 text-xs">${d.category}</td><td class="text-emerald-600 font-bold">${fMoney(d.price)}</td></tr>`);
+      menu.forEach(d => tb2.innerHTML += `<tr><td class="font-bold flex items-center gap-3"><img src="${d.image_icon}" class="w-10 h-10 object-cover rounded-lg border border-slate-200" onerror="this.style.display='none'"> ${d.name}</td><td class="text-slate-500 text-xs">${d.category}</td><td class="text-emerald-600 font-bold">${fMoney(d.price)}</td><td><button onclick="deleteProduct(${d.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+    }
+
+    async function addProduct() {
+      const { value: formValues } = await Swal.fire({
+        title: 'Thêm Món Mới',
+        html:
+          '<input id="swal-name" class="swal2-input" placeholder="Tên món">' +
+          '<input id="swal-cat" class="swal2-input" placeholder="Phân loại (Cà phê, Trà, Bánh ngọt...)">' +
+          '<input id="swal-price" type="number" class="swal2-input" placeholder="Giá tiền">',
+        focusConfirm: false,
+        preConfirm: () => {
+          return { name: document.getElementById('swal-name').value, cat: document.getElementById('swal-cat').value, price: document.getElementById('swal-price').value }
+        }
+      });
+      if (formValues && formValues.name && formValues.price) {
+        Swal.fire({title: 'Đang xử lý...', didOpen:()=>Swal.showLoading()});
+        await req('/products', 'POST', formValues);
+        Swal.fire('Thành công', '', 'success');
+        initInv();
+      }
+    }
+    async function deleteProduct(id) {
+      if(confirm('Xóa món này?')) { await req('/products/'+id, 'DELETE'); initInv(); }
+    }
+    
+    async function addInventory() {
+      const branch = document.getElementById('invBranchFilter').value;
+      if(branch === 'all') return Swal.fire('Lỗi', 'Vui lòng chọn 1 chi nhánh cụ thể trước khi nhập kho!', 'warning');
+      const { value: fv } = await Swal.fire({
+        title: 'Nhập Kho',
+        html:
+          '<input id="swal-iname" class="swal2-input" placeholder="Tên mặt hàng">' +
+          '<input id="swal-icat" class="swal2-input" placeholder="Loại (Bao bì, Nguyên liệu...)">' +
+          '<input id="swal-iqty" type="number" class="swal2-input" placeholder="Số lượng">' +
+          '<input id="swal-iunit" class="swal2-input" placeholder="Đơn vị (kg, ly, cái...)">',
+        focusConfirm: false,
+        preConfirm: () => { return { name: document.getElementById('swal-iname').value, cat: document.getElementById('swal-icat').value, qty: document.getElementById('swal-iqty').value, unit: document.getElementById('swal-iunit').value, branch } }
+      });
+      if (fv && fv.name && fv.qty) {
+        Swal.fire({title: 'Đang xử lý...', didOpen:()=>Swal.showLoading()});
+        await req('/inventory', 'POST', fv);
+        Swal.fire('Thành công', '', 'success');
+        initInv();
+      }
+    }
+    async function deleteInventory(id) {
+      if(confirm('Xóa vật tư này?')) { await req('/inventory/'+id, 'DELETE'); initInv(); }
     }
 
     // CRM
